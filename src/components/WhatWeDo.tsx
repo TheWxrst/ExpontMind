@@ -32,15 +32,15 @@ interface ServiceCardProps {
 
 function ServiceCard({ service, alignRight = false }: ServiceCardProps) {
   return (
-    <div className="group relative">
+    <div className=" group relative">
       <div
-        className={`p-8 md:p-12 lg:p-16 h-full flex flex-col min-h-[50vh] transition-all duration-500 ${
+        className={`h-full flex flex-col min-h-[50vh] transition-all duration-500 ${
           alignRight ? "items-end" : ""
         }`}
       >
         <div className="flex gap-8 ">
           <div
-            className={`border rotate-45 group-hover:rotate-225 w-[56px] h-[56px] flex items-center justify-center transition-all duration-500 border-blue-400`}
+            className={`border-2 rotate-45 group-hover:rotate-225 w-[56px] h-[56px] flex items-center justify-center transition-all duration-500 border-blue-400`}
           >
             <p className="text-lg font-light group-hover:-rotate-225 text-white -rotate-45 transition-all duration-500">
               {service.number}

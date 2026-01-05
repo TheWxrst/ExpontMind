@@ -31,7 +31,15 @@ const cloudShader = {
   `,
 };
 
-function CloudMesh({ texture }: { texture: THREE.Texture }) {
+function CloudMesh({
+  texture,
+  startVh,
+  endVh,
+}: {
+  texture: THREE.Texture;
+  startVh: number;
+  endVh: number;
+}) {
   const groupRef = useRef<THREE.Group>(null);
   const scrollProgress = useRef(0);
   const targetY = useRef(0);
@@ -87,9 +95,9 @@ function CloudMesh({ texture }: { texture: THREE.Texture }) {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowHeight = window.innerHeight;
-      // Cloud 30vh-аас эхэлж аажим дээшилнэ, 350vh-д бүрэн алга болно
-      const cloudStartScroll = windowHeight * 1;
-      const cloudEndScroll = windowHeight * 5;
+      // Cloud start/end derived from props
+      const cloudStartScroll = windowHeight * startVh;
+      const cloudEndScroll = windowHeight * endVh;
 
       if (scrollY < cloudStartScroll) {
         scrollProgress.current = 0;
@@ -117,7 +125,7 @@ function CloudMesh({ texture }: { texture: THREE.Texture }) {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [camera]);
+  }, [camera, startVh, endVh]);
 
   useFrame((state) => {
     const time = state.clock.elapsedTime;
@@ -157,7 +165,13 @@ function CloudMesh({ texture }: { texture: THREE.Texture }) {
   );
 }
 
-function CloudSceneContent() {
+function CloudSceneContent({
+  startVh,
+  endVh,
+}: {
+  startVh: number;
+  endVh: number;
+}) {
   const textureRef = useRef<THREE.Texture | null>(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -179,28 +193,37 @@ function CloudSceneContent() {
     return null;
   }
 
-  return <CloudMesh texture={textureRef.current} />;
+  return (
+    <CloudMesh texture={textureRef.current} startVh={startVh} endVh={endVh} />
+  );
 }
 
 import { useState } from "react";
 
-export function CloudScene() {
+interface CloudSceneProps {
+  startVh?: number;
+  endVh?: number;
+}
+
+export function CloudScene({ startVh = 6, endVh = 9 }: CloudSceneProps) {
   return (
-    <Canvas
-      className="absolute! inset-0 w-full h-full"
-      camera={{
-        fov: 30,
-        near: 1,
-        far: 3000,
-        position: [0, 0, 6000],
-      }}
-      gl={{
-        antialias: false,
-        alpha: true,
-      }}
-    >
-      <fog attach="fog" args={[0xffffff, -500, 3000]} />
-      <CloudSceneContent />
-    </Canvas>
+    <div className="fixed top-0 left-0 h-[200vh] w-screen p-0 m-0 pointer-events-none z-0">
+      <Canvas
+        className="absolute! inset-0 w-full h-full"
+        camera={{
+          fov: 30,
+          near: 1,
+          far: 3000,
+          position: [0, 0, 6000],
+        }}
+        gl={{
+          antialias: false,
+          alpha: true,
+        }}
+      >
+        <fog attach="fog" args={[0xffffff, -500, 3000]} />
+        <CloudSceneContent startVh={startVh} endVh={endVh} />
+      </Canvas>
+    </div>
   );
 }

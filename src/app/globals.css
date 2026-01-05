@@ -216,8 +216,13 @@ h6 {
   animation: scrollBounce 1.5s ease-in-out infinite;
 }
 
-/* Cloud container gradient */
-.cloud-gradient {
+/* Cloud container gradient - white (Scene visible) */
+.cloud-gradient-white {
+  background: transparent;
+}
+
+/* Cloud container gradient - blue (Aurelia visible) */
+.cloud-gradient-blue {
   background: linear-gradient(
     180deg,
     transparent 0%,
@@ -231,8 +236,8 @@ h6 {
   );
 }
 
-/* Cloud bottom fade overlay */
-.cloud-fade-overlay::after {
+/* Cloud bottom fade overlay - white */
+.cloud-fade-overlay-white::after {
   content: "";
   position: absolute;
   bottom: 0;
@@ -245,6 +250,25 @@ h6 {
     rgba(255, 255, 255, 0.3) 40%,
     rgba(255, 255, 255, 0.7) 70%,
     #ffffff 100%
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Cloud bottom fade overlay - blue */
+.cloud-fade-overlay-blue::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40vh;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(30, 72, 119, 0.3) 40%,
+    rgba(69, 132, 180, 0.7) 70%,
+    #87ceeb 100%
   );
   pointer-events: none;
   z-index: 10;

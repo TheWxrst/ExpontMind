@@ -5,17 +5,14 @@ import dynamic from "next/dynamic";
 import { Canvas } from "@react-three/fiber";
 import { Scene } from "@/components/Scene";
 import { SceneText } from "@/components/SceneText";
-import FluidCursor from "@/components/FluidCursor";
 import WhatWeDo from "@/components/WhatWeDo";
 import WaterDistortion from "@/components/WaterDistortion";
+import Aurelia from "@/components/Aurelia";
+import { Partners } from "@/components/Partners";
+import Footer from "@/components/navigation/Footer";
 
 const CloudScene = dynamic(
   () => import("@/components/CloudScene").then((mod) => mod.CloudScene),
-  { ssr: false }
-);
-
-const Aurelia = dynamic(
-  () => import("@/components/aurelia").then((mod) => mod.Aurelia),
   { ssr: false }
 );
 
@@ -54,8 +51,6 @@ export default function Home() {
 
   return (
     <div className="w-screen min-h-[500vh] p-0 m-0 bg-[#0f0a0a] font-mono overflow-x-hidden">
-      <FluidCursor />
-
       <SceneText />
 
       <div className="fixed top-0 left-0 h-screen w-screen z-0 bg-[#0f0a0a]">
@@ -107,6 +102,19 @@ export default function Home() {
       <div className="h-[500vh]" />
 
       <WhatWeDo />
+
+      <Partners />
+
+      {/* <div className="relative w-full h-[400vh] z-10 bg-black">
+        <p className="text-4xl md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase px-24">
+          Featured projects
+        </p>
+        <div className="sticky top-0 h-screen w-full">
+          <TrainScene usePageScroll scrollProgress={scrollProgress} />
+        </div>
+      </div> */}
+
+      <Footer />
     </div>
   );
 }

@@ -1,21 +1,18 @@
 import * as THREE from "three";
 import { useRef, useEffect } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import {
-  Clouds,
-  Cloud,
-  Sky as SkyImpl,
-  StatsGl,
-  Stars,
-  CameraControls,
-} from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 import { Mountain } from "./Mountain";
-import { Reactor } from "./Reactor";
 
-function ScrollCamera() {
+interface SceneProps {
+  startVP?: number; // Start viewport multiplier (default: 2)
+  endVP?: number; // End viewport multiplier (default: 4)
+}
+
+function ScrollCamera({ startVP = 2, endVP = 4 }: SceneProps) {
   const { camera } = useThree();
-  const targetPosition = useRef(new THREE.Vector3(0, -60, 40));
-  const targetRotation = useRef(new THREE.Euler(0.78, 0, 0));
+  const targetPosition = useRef(new THREE.Vector3(0, -180, 100));
+  const targetRotation = useRef(new THREE.Euler(0.78, -0.18, 0));
   const initialized = useRef(false);
 
   // Mouse parallax
@@ -35,23 +32,27 @@ function ScrollCamera() {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
 
-      // Camera moves within 0vh to 100vh scroll range
-      const endScroll = viewportHeight; // 100vh
+      // Dynamic start/end based on props
+      const startScroll = viewportHeight * startVP;
+      const endScroll = viewportHeight * endVP;
 
       // Calculate progress (0 to 1) based on scroll position
-      const progress = Math.min(Math.max(scrollY / endScroll, 0), 1);
+      const progress = Math.min(
+        Math.max((scrollY - startScroll) / (endScroll - startScroll), 0),
+        1
+      );
 
       // Move camera back (increase z) as user scrolls down
       targetPosition.current.set(
         0,
-        -60 + progress * -120, // y: -200 to -150 (move up)
-        40 + progress * 160 // z: 200 to 300 (move back)
+        -180 + progress * -100, // y: -100 to -180 (move up)
+        100 + progress * 140 // z: 60 to 200 (move back)
       );
 
       // Rotate camera as user scrolls (slight tilt up)
       targetRotation.current.set(
         0.78 + progress * -0.2, // x rotation: 0.78 to 0.93 (бага зэрэг дээш эргэнэ)
-        0,
+        -0.18,
         0
       );
     };
@@ -90,95 +91,83 @@ function ScrollCamera() {
     camera.rotation.z += (targetRotation.current.z - camera.rotation.z) * 0.1;
 
     // Mouse-аас хамааруулж камерын эргэлтийг нэмнэ
-    camera.rotation.y += mouseX.current * -0.008; // Хажуу тийш эргэнэ
+    camera.rotation.y += mouseX.current * -0.005; // Хажуу тийш эргэнэ
     camera.rotation.x += mouseY.current * -0.005; // Дээш/доош эргэнэ
   });
 
   return null;
 }
 
-export const Scene = () => {
+export const Scene = (props: SceneProps) => {
   return (
     <>
-      <ScrollCamera />
+      <ScrollCamera {...props} />
+
       <Mountain />
-      {/* <CameraControls /> */}
-      {/* <Reactor /> */}
+
       <Stars
-        radius={12}
-        depth={100}
+        radius={100}
+        depth={120}
         count={8000}
-        factor={8}
+        factor={10}
         saturation={0}
         fade
         speed={1}
       />
 
-      <StatsGl />
-      <Sky />
-      {/* Ambient light - бага зэрэг dark */}
-      <ambientLight intensity={0.8} color="#c8d4e0" />
-      {/* Нарны гэрэл - дээрээс */}
-      <directionalLight
-        position={[50, 100, 50]}
-        intensity={1.8}
-        color="#ffeedd"
-        castShadow
-      />
-      {/* Тэнгэрийн тусгал - доороос */}
-      <hemisphereLight color="#8ab4d0" groundColor="#6b5345" intensity={0.9} />
-      {/* Rim light - хөх өнгөтэй */}
+      <ambientLight intensity={0.01} color="#ffffff" />
+
+      <hemisphereLight color="#707070" groundColor="#000000" intensity={0.3} />
+
       <spotLight
-        position={[-30, 20, 30]}
-        color="#a8c8e0"
+        position={[0, -50, 30]}
+        color="#ffffff"
         angle={0.3}
-        decay={0}
+        decay={0.6}
         penumbra={1}
-        intensity={25}
+        intensity={12}
       />
       <spotLight
-        position={[30, 10, 20]}
-        color="#b8d4e8"
-        angle={0.3}
-        decay={0}
+        position={[0, -50, 30]}
+        color="#ffffff"
+        angle={0.2}
+        decay={0.5}
         penumbra={1}
-        intensity={20}
+        intensity={12}
+      />
+
+      <spotLight
+        position={[0, 10, 120]}
+        color="#ffffff"
+        angle={0.5}
+        decay={0.8}
+        penumbra={1}
+        intensity={15}
+      />
+      <spotLight
+        position={[0, 10, 120]}
+        color="#ffffff"
+        angle={0.4}
+        decay={0.6}
+        penumbra={1}
+        intensity={15}
+      />
+      <spotLight
+        position={[0, 10, 120]}
+        color="#ffffff"
+        angle={0.3}
+        decay={0.5}
+        penumbra={1}
+        intensity={15}
+      />
+      <spotLight
+        position={[0, 10, 120]}
+        color="#ffffff"
+        angle={0.2}
+        decay={0.4}
+        penumbra={1}
+        intensity={15}
       />
     </>
   );
 };
-
-function Sky() {
-  const ref = useRef<THREE.Group>(null);
-  const cloud0 = useRef<THREE.Group>(null);
-
-  useFrame((state, delta) => {
-    if (!ref.current || !cloud0.current) return;
-    ref.current.rotation.y = Math.cos(state.clock.elapsedTime / 10) * 0.05;
-    ref.current.rotation.x = Math.sin(state.clock.elapsedTime / 10) * 0.05;
-    cloud0.current.rotation.y -= delta * 0.03;
-  });
-
-  return (
-    <>
-      <SkyImpl />
-      <group ref={ref}>
-        <Clouds material={THREE.MeshBasicMaterial} limit={400} range={400}>
-          <Cloud
-            ref={cloud0}
-            concentrate="outside"
-            growth={30}
-            color="#ffffff"
-            opacity={1.8}
-            seed={2}
-            bounds={[300, 150, 300]}
-            volume={200}
-            segments={60}
-            speed={0.01}
-            fade={800}
-          />
-        </Clouds>
-      </group>
-    </>
-  );
-}
