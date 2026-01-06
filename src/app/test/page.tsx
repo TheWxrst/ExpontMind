@@ -28,6 +28,9 @@ const Footer = dynamic(() => import("@/components/navigation/Footer"), {
 const TrainScene = dynamic(() => import("@/components/TrainScene"), {
   ssr: false,
 });
+const SideMenu = dynamic(() => import("@/components/SideMenu"), {
+  ssr: false,
+});
 
 // useWorkVisibility removed
 
@@ -186,6 +189,8 @@ export default function TestPage() {
 
   return (
     <div className="min-h-screen text-white font-sans bg-[#0f0a0a]">
+      <SideMenu />
+
       <div
         className="fixed inset-0 w-full h-full pointer-events-none"
         style={{ zIndex: 0 }}
@@ -216,11 +221,7 @@ export default function TestPage() {
         <div className="ghost_hero-item h-[320vh]" />
         <div className="fixed inset-0 w-full h-full flex justify-between items-end pointer-events-none z-0">
           <div className="relative flex-1 flex justify-start items-center px-[4vw] pb-[4vw] text-white uppercase font-medium text-[12.5vw] leading-[0.9]">
-            <div>
-              Just
-              <br />
-              <span className="text-[#cde5df]">scroll </span>it.
-            </div>
+            <p>Expont Mind</p>
           </div>
         </div>
       </section>
@@ -265,26 +266,7 @@ export default function TestPage() {
           >
             {/* Background Image */}
             <div className="absolute inset-0 w-full h-screen" data-work="image">
-              <Canvas
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                }}
-                resize={{ scroll: false, debounce: { scroll: 100, resize: 0 } }}
-                shadows
-                dpr={[1, 2]}
-                gl={{
-                  antialias: true,
-                  alpha: false,
-                  powerPreference: "high-performance",
-                }}
-                camera={{ position: [0, -180, 100], fov: 45 }}
-              >
-                <Scene startVP={4.2} endVP={7.2} />
-              </Canvas>
+              <Scene startVP={4.2} endVP={8.2} />
             </div>
 
             {/* Content Wrapper */}

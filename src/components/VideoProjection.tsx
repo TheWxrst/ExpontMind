@@ -20,6 +20,8 @@ class VideoProjectionApp {
   hoverRadius = 0.8;
   scrollProgress = 0;
   targetRotationZ = 0;
+  videoElement: HTMLVideoElement | null = null;
+  videoTexture: THREE.VideoTexture | null = null;
 
   constructor(canvasElement: HTMLCanvasElement) {
     this.canvas = canvasElement;
@@ -75,6 +77,9 @@ class VideoProjectionApp {
     this.scene.add(this.group);
     this.group.scale.setScalar(0.15);
 
+    // Create video texture for cubes
+    this.createVideoTexture();
+
     // Load mask and create grid
     this.createMask();
 
@@ -98,6 +103,23 @@ class VideoProjectionApp {
     this.scrollProgress = Math.min(window.scrollY / maxScroll, 1);
     // Rotate 180 degrees (PI radians) over the 300vh scroll
     this.targetRotationZ = this.scrollProgress * Math.PI;
+  }
+
+  createVideoTexture() {
+    // Create video element
+    this.videoElement = document.createElement("video");
+    this.videoElement.src = "/footage.mp4";
+    this.videoElement.loop = true;
+    this.videoElement.muted = true;
+    this.videoElement.playsInline = true;
+    this.videoElement.autoplay = true;
+    this.videoElement.play();
+
+    // Create video texture
+    this.videoTexture = new THREE.VideoTexture(this.videoElement);
+    this.videoTexture.minFilter = THREE.LinearFilter;
+    this.videoTexture.magFilter = THREE.LinearFilter;
+    this.videoTexture.colorSpace = THREE.SRGBColorSpace;
   }
 
   onMouseMove(event: MouseEvent) {
@@ -140,11 +162,10 @@ class VideoProjectionApp {
   }
 
   createGrid(data: Uint8ClampedArray, gridWidth: number, gridHeight: number) {
-    // Black material
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x000000,
-      metalness: 0.1,
-      roughness: 0.3,
+    // Video texture material for cubes
+    const material = new THREE.MeshBasicMaterial({
+      map: this.videoTexture,
+      side: THREE.FrontSide,
     });
 
     const gridGroup = new THREE.Group();
@@ -162,6 +183,19 @@ class VideoProjectionApp {
 
         if (brightness < 128) {
           const geometry = new THREE.BoxGeometry(0.45, 0.45, 0.45);
+
+          // UV mapping - cube бүрт video-ийн өөр өөр хэсгийг харуулна
+          const uvAttribute = geometry.attributes.uv;
+          const uOffset = x / this.gridSize;
+          const vOffset = y / this.gridSize;
+          const uvScale = 1 / this.gridSize;
+
+          for (let i = 0; i < uvAttribute.count; i++) {
+            const u = uvAttribute.getX(i) * uvScale + uOffset;
+            const v = uvAttribute.getY(i) * uvScale + vOffset;
+            uvAttribute.setXY(i, u, v);
+          }
+
           const mesh = new THREE.Mesh(geometry, material);
           mesh.position.x = (x - (this.gridSize - 1) / 2) * this.spacing;
           mesh.position.y = (y - (this.gridSize - 1) / 2) * this.spacing;

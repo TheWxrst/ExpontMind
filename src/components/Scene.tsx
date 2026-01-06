@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { useRef, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { Mountain } from "./Mountain";
 
@@ -9,9 +9,9 @@ interface SceneProps {
   endVP?: number; // End viewport multiplier (default: 4)
 }
 
-function ScrollCamera({ startVP = 2, endVP = 4 }: SceneProps) {
+function ScrollCamera({ startVP = 4, endVP = 8.5 }: SceneProps) {
   const { camera } = useThree();
-  const targetPosition = useRef(new THREE.Vector3(0, -180, 100));
+  const targetPosition = useRef(new THREE.Vector3(0, 0, 0));
   const targetRotation = useRef(new THREE.Euler(0.78, -0.18, 0));
   const initialized = useRef(false);
 
@@ -45,8 +45,8 @@ function ScrollCamera({ startVP = 2, endVP = 4 }: SceneProps) {
       // Move camera back (increase z) as user scrolls down
       targetPosition.current.set(
         0,
-        -180 + progress * -100, // y: -100 to -180 (move up)
-        100 + progress * 140 // z: 60 to 200 (move back)
+        0 + progress * -200, // y: -100 to -180 (move up)
+        0 + progress * 200 // z: 60 to 200 (move back)
       );
 
       // Rotate camera as user scrolls (slight tilt up)
@@ -100,7 +100,24 @@ function ScrollCamera({ startVP = 2, endVP = 4 }: SceneProps) {
 
 export const Scene = (props: SceneProps) => {
   return (
-    <>
+    <Canvas
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+      }}
+      resize={{ scroll: false, debounce: { scroll: 100, resize: 0 } }}
+      shadows
+      dpr={[1, 2]}
+      gl={{
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance",
+      }}
+      camera={{ position: [0, -180, 100], fov: 45 }}
+    >
       <ScrollCamera {...props} />
 
       <Mountain />
@@ -109,7 +126,7 @@ export const Scene = (props: SceneProps) => {
         radius={100}
         depth={120}
         count={8000}
-        factor={10}
+        factor={15}
         saturation={0}
         fade
         speed={1}
@@ -168,6 +185,6 @@ export const Scene = (props: SceneProps) => {
         penumbra={1}
         intensity={15}
       />
-    </>
+    </Canvas>
   );
 };

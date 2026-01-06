@@ -20,6 +20,7 @@
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
+    "sass": "^1.97.2",
     "simplex-noise": "^4.0.3",
     "tweakpane": "^4.0.5",
     "uuid-by-string": "^4.0.0",
