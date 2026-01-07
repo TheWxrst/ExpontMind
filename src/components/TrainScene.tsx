@@ -267,31 +267,33 @@ export default function TrainScene({
   scrollProgress = 0,
 }: TrainSceneProps) {
   return (
-    <PageScrollContext.Provider value={{ scrollProgress }}>
-      <Canvas
-        dpr={[1, 1.5]}
-        shadows
-        camera={{ position: [-20, 5, 20], fov: 35 }}
-        gl={{ alpha: false }}
-      >
-        <fog attach="fog" args={["#000000", 30, 45]} />
-        <color attach="background" args={["#000000"]} />
-        <ambientLight intensity={0.25} />
-        <directionalLight
-          castShadow
-          intensity={2}
-          position={[10, 6, 6]}
-          shadow-mapSize={[1024, 1024]}
+    <div className="sticky top-0 h-screen w-full">
+      <PageScrollContext.Provider value={{ scrollProgress }}>
+        <Canvas
+          dpr={[1, 1.5]}
+          shadows
+          camera={{ position: [-20, 5, 20], fov: 35 }}
+          gl={{ alpha: false }}
         >
-          <orthographicCamera
-            attach="shadow-camera"
-            args={[-20, 20, 20, -20]}
-          />
-        </directionalLight>
-        <Suspense fallback={null}>
-          <Scene usePageScroll={usePageScroll} />
-        </Suspense>
-      </Canvas>
-    </PageScrollContext.Provider>
+          <fog attach="fog" args={["#000000", 30, 45]} />
+          <color attach="background" args={["#000000"]} />
+          <ambientLight intensity={0.25} />
+          <directionalLight
+            castShadow
+            intensity={2}
+            position={[10, 6, 6]}
+            shadow-mapSize={[1024, 1024]}
+          >
+            <orthographicCamera
+              attach="shadow-camera"
+              args={[-20, 20, 20, -20]}
+            />
+          </directionalLight>
+          <Suspense fallback={null}>
+            <Scene usePageScroll={usePageScroll} />
+          </Suspense>
+        </Canvas>
+      </PageScrollContext.Provider>
+    </div>
   );
 }

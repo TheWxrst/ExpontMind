@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { ArrowDown } from "lucide-react";
 
 const TARGET_LONG_SIDE = 128 * 74;
 const MIN_GRID_SIZE = 8;
@@ -876,26 +877,45 @@ export function Ascii({ className = "" }: FooterProps) {
   }, [setupScene]);
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative z-100 w-full h-screen bg-black overflow-hidden ${className}`}
-      style={{ cursor: "default" }}
-    >
-      <div
-        ref={renderRef}
-        className="absolute top-0 left-0 whitespace-pre font-mono font-bold text-white"
-        style={{ letterSpacing: "0.4em" }}
-      />
-      {/* Contact button centered in fluid */}
-      <button
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 -translate-y-1/2 px-8 py-4 rounded-full border border-white/50 bg-white text-black font-medium text-lg transition-all duration-300 cursor-pointer"
-        onClick={() => {
-          window.location.href = "/contact";
-        }}
-      >
-        Contact
-      </button>
-    </div>
+    <section className="relative h-[200vh]">
+      <div className="sticky top-0 h-screen w-full z-10">
+        <div
+          ref={containerRef}
+          className={`relative z-100 w-full h-screen bg-black overflow-hidden ${className}`}
+          style={{ cursor: "default" }}
+        >
+          <div
+            ref={renderRef}
+            className="absolute top-0 left-0 whitespace-pre font-mono font-bold text-white content-center"
+            style={{ letterSpacing: "0.4em" }}
+          />
+
+          {/* Centered Text */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <p className="text-[200px] text-white font-pixel text-center leading-none tracking-tight uppercase">
+              Let's talk
+            </p>
+          </div>
+
+          {/* Contact button centered in fluid */}
+          <button className="absolute bottom-10 left-1/2 -translate-x-1/2 -translate-y-1/2 px-8 py-4 rounded-full border bg-white text-black font-normal text-base tracking-wide transition-all duration-300 uppercase flex items-center gap-4 overflow-hidden">
+            <span className="inline-flex h-5 overflow-hidden">
+              <div className="flex flex-col animate-arrow-scroll">
+                <ArrowDown className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                <ArrowDown className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+              </div>
+            </span>
+            Contact us
+            <span className="inline-flex h-5 overflow-hidden">
+              <div className="flex flex-col animate-arrow-scroll">
+                <ArrowDown className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+                <ArrowDown className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+              </div>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 

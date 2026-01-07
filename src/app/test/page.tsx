@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 
-const GeometricExperience = dynamic(
-  () => import("@/components/GeometricExperience"),
+const InteractiveParticles = dynamic(
+  () => import("@/components/InteractiveParticles"),
   {
     ssr: false,
   }
@@ -11,8 +11,8 @@ const GeometricExperience = dynamic(
 
 export default function TestPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      <GeometricExperience />
+    <div className="min-h-screen bg-black">
+      <InteractiveParticles className="w-full h-screen" />
     </div>
   );
 }

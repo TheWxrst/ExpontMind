@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
-import dynamic from "next/dynamic";
 import IceTrails from "@/components/IceTrails";
 import { Canvas } from "@react-three/fiber";
 import { Scene } from "@/components/Scene";
@@ -12,20 +11,12 @@ import { Logo } from "@/components/Logo";
 import { Environment } from "@react-three/drei";
 import Ascii from "@/components/Ascii";
 import NoiseOverlay from "@/components/NoiseOverlay";
-import GeometricGrid from "@/components/GeometricGrid";
-import TextRepetition from "@/components/TextRepetition";
 import { Header } from "@/components/navigation/Header";
-
-const Partners = dynamic(
-  () => import("@/components/Partners").then((mod) => mod.Partners),
-  {
-    ssr: false,
-  }
-);
-
-const TrainScene = dynamic(() => import("@/components/TrainScene"), {
-  ssr: false,
-});
+import Footer from "@/components/navigation/Footer";
+import TrainScene from "@/components/TrainScene";
+import { Partners } from "@/components/Partners";
+import ScrollTrailText from "@/components/ScrollTrailText";
+import { About } from "@/components/About";
 
 function useTextVisibility() {
   const [opacity, setOpacity] = useState(1);
@@ -181,11 +172,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen font-sans bg-[#0f0a0a]">
-      {/* Noise Overlay */}
       <NoiseOverlay opacity={0.05} zIndex={1000} />
-
-      {/* Geometric Grid Background */}
-      {/* <GeometricGrid zIndex={2} showDebugText={false} gridOpacity={0.15} /> */}
 
       <div
         className="fixed inset-0 w-full h-full pointer-events-none"
@@ -196,15 +183,28 @@ export default function Home() {
           <VideoProjection />
         </div>
       </div>
-
       <Header />
 
       {/* Hero Section */}
       <section className="relative">
         <div className="ghost_hero-item h-[320vh]" />
         <div className="fixed inset-0 w-full h-full flex justify-between items-end pointer-events-none z-0">
-          <div className="relative flex-1 flex justify-start items-center px-[4vw] py-[50px] text-white uppercase font-medium text-[13.7vw] text-center leading-[0.8]">
-            <p>Expont Mind</p>
+          <div className="relative flex-1 flex flex-col px-[5vw] py-[1vh]">
+            <div className="relative w-full text-center">
+              {/* Spacer for layout dimensions */}
+              <div className="opacity-0 text-[13.4vw] leading-[0.7] font-medium uppercase text-center select-none pointer-events-none">
+                Expont Mind
+              </div>
+
+              {/* Actual Component Overlay - Absolute to match spacer position */}
+              <div className="absolute inset-0 top-0 left-0 w-full h-full flex items-center justify-center">
+                <ScrollTrailText />
+              </div>
+            </div>
+
+            <p className="text-white uppercase font-normal text-[2vw] text-end mt-4">
+              Solutions
+            </p>
           </div>
         </div>
       </section>
@@ -238,7 +238,6 @@ export default function Home() {
           </h2>
         </div>
       </section>
-
       {/* Work Section */}
       <section data-work="section" className="relative">
         <div className="work_container">
@@ -284,15 +283,16 @@ export default function Home() {
         <p className="text-4xl md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase px-24">
           Featured projects
         </p>
-        <div className="sticky top-0 h-screen w-full">
-          <TrainScene usePageScroll scrollProgress={scrollProgress} />
-        </div>
+        <TrainScene usePageScroll scrollProgress={scrollProgress} />
       </div>
 
-      {/* Ascii Section */}
-      <section className="relative h-screen">
-        <Ascii />
+      <section className="ascii_section relative h-[250vh]">
+        <div className="sticky top-0 h-screen w-full" style={{ zIndex: 50 }}>
+          <Ascii />
+        </div>
       </section>
+
+      <Footer />
     </div>
   );
 }

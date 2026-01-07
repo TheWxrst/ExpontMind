@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
-/**
- * Cinematic Portfolio - Global Styles
- *
- * PHILOSOPHY:
- * - Minimal base styles, let Three.js scene be the star
- * - Smooth scroll for that premium feel
- * - Dark theme as foundation for 3D content
- */
+@font-face {
+  font-family: "Pixel Space";
+  src: url("/font/PixelSpace.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  --font-pixel: "Pixel Space", monospace;
+}
 
 :root {
   /* Color palette - dark cinematic */
@@ -68,6 +70,7 @@ body {
 html {
   scroll-behavior: auto;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -263,3 +266,16 @@ h6 {
   z-index: 10;
 }
 
+/* Seamless scroll down animation */
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+.animate-arrow-scroll {
+  animation: scroll-down 1s linear infinite;
+}

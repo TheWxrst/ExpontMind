@@ -64,10 +64,8 @@ export const Partners = () => {
 
   return (
     <div className="relative w-full z-10">
-      {/* Top gradient section */}
       <div className="h-screen w-full bg-linear-to-b from-transparent via-black/50 to-black" />
 
-      {/* Partners content */}
       <div
         ref={containerRef}
         className="relative z-10 min-h-screen w-full bg-black py-32"
