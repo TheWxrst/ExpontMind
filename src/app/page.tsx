@@ -19,9 +19,9 @@ import ScrollTrailText from "@/components/ScrollTrailText";
 import { About } from "@/components/About";
 import { CardStack } from "@/components/CardStack";
 
-function useTextVisibility() {
-  const [opacity, setOpacity] = useState(1);
-
+function useTextVisibility(
+  textItemRef: React.RefObject<HTMLDivElement | null>
+) {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
@@ -31,22 +31,26 @@ function useTextVisibility() {
       const fadeStart = windowHeight * 4.0;
       const fadeEnd = windowHeight * 4.5;
 
+      let opacity = 1;
       if (scrollY < fadeStart) {
-        setOpacity(1);
+        opacity = 1;
       } else if (scrollY >= fadeEnd) {
-        setOpacity(0);
+        opacity = 0;
       } else {
         const progress = (scrollY - fadeStart) / (fadeEnd - fadeStart);
-        setOpacity(1 - progress);
+        opacity = 1 - progress;
+      }
+
+      // Direct DOM manipulation - no re-render
+      if (textItemRef.current) {
+        textItemRef.current.style.opacity = String(opacity);
       }
     };
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return opacity;
+  }, [textItemRef]);
 }
 
 function useTrainSceneScroll() {
@@ -83,7 +87,8 @@ function useTrainSceneScroll() {
 }
 
 export default function Home() {
-  const textOpacity = useTextVisibility();
+  const textItemRef = useRef<HTMLDivElement>(null);
+  useTextVisibility(textItemRef);
   const { scrollProgress, containerRef } = useTrainSceneScroll();
 
   useEffect(() => {
@@ -214,8 +219,9 @@ export default function Home() {
       <section className="relative">
         <div className="ghost_text-item h-screen" />
         <div
+          ref={textItemRef}
           className="text_item fixed inset-0 z-5 bg-black flex flex-col justify-center items-center text-center pointer-events-none"
-          style={{ opacity: textOpacity, transition: "opacity 0.1s linear" }}
+          style={{ transition: "opacity 0.1s linear" }}
         >
           <div className="absolute inset-0 w-full h-full z-0">
             <Canvas

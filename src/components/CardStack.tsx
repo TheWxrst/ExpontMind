@@ -389,7 +389,7 @@ export function CardStack({
   }, [animate]);
 
   return (
-    <div ref={containerRef} className={`h-[500vh] relative ${className} z-10 `}>
+    <div ref={containerRef} className={`h-[500vh] relative ${className} z-10`}>
       <div className="h-screen flex items-center justify-center sticky top-0">
         <div
           className="relative flex items-center justify-center"

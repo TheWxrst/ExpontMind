@@ -27,14 +27,15 @@ class VideoProjectionApp {
     this.canvas = canvasElement;
 
     // Renderer
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
+      antialias: !isMobile,
       alpha: true,
     });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
 
     // Scene & Camera
     this.scene = new THREE.Scene();

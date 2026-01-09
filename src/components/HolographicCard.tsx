@@ -385,8 +385,9 @@ export default function HolographicCard({
     s.cameraRTT.position.y = -2;
 
     // Renderer
-    s.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    s.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    s.renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true });
+    s.renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
     s.renderer.setSize(width, height);
     s.renderer.autoClear = false;
     s.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -399,13 +400,15 @@ export default function HolographicCard({
     s.controls.enableRotate = autoRotate; // Disable mouse rotation when controlled externally
     s.controls.update();
 
-    // Bloom pass
+    // Bloom pass - downsample for performance
+    const bloomWidth = isMobile ? Math.floor(width / 3) : Math.floor(width / 2);
+    const bloomHeight = isMobile ? Math.floor(height / 3) : Math.floor(height / 2);
     const renderScene = new RenderPass(s.sceneRTT, s.cameraRTT);
     s.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(width, height),
-      bloomStrength,
-      bloomRadius,
-      0.85
+      new THREE.Vector2(bloomWidth, bloomHeight),
+      isMobile ? bloomStrength * 0.7 : bloomStrength,
+      isMobile ? bloomRadius * 0.7 : bloomRadius,
+      0.9 // Higher threshold = less bloom
     );
     s.composer = new EffectComposer(s.renderer);
     s.composer.renderToScreen = false;
@@ -777,14 +780,73 @@ export default function HolographicCard({
       cancelAnimationFrame(s.raf);
       window.removeEventListener("resize", handleResize);
 
-      s.renderer?.dispose();
+      // Dispose all geometries and materials in scenes
+      const disposeObject = (obj: THREE.Object3D) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry?.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m) => m.dispose());
+          } else if (obj.material) {
+            // Dispose textures from material
+            const mat = obj.material as THREE.MeshStandardMaterial;
+            mat.map?.dispose();
+            mat.normalMap?.dispose();
+            mat.roughnessMap?.dispose();
+            mat.metalnessMap?.dispose();
+            mat.dispose();
+          }
+        }
+      };
+
+      // Traverse and dispose all objects in scenes
+      s.scene?.traverse(disposeObject);
+      s.sceneRTT?.traverse(disposeObject);
+
+      // Dispose label meshes
+      s.labelMeshes.forEach((mesh) => {
+        mesh.geometry?.dispose();
+        if (mesh.material instanceof THREE.Material) {
+          mesh.material.dispose();
+        }
+      });
+
+      // Dispose materials
       s.frontmaterial?.dispose();
       s.backmaterial?.dispose();
       s.skullmaterial?.dispose();
 
+      // Dispose composer and bloom pass
+      s.bloomPass?.dispose();
+      s.composer?.dispose();
+
+      // Dispose controls
+      s.controls?.dispose();
+
+      // Dispose renderer and force context loss
+      s.renderer?.dispose();
+      s.renderer?.forceContextLoss();
+
+      // Remove DOM element
       if (s.renderer && container.contains(s.renderer.domElement)) {
         container.removeChild(s.renderer.domElement);
       }
+
+      // Clear references
+      s.scene = null;
+      s.sceneRTT = null;
+      s.camera = null;
+      s.cameraRTT = null;
+      s.renderer = null;
+      s.composer = null;
+      s.bloomPass = null;
+      s.controls = null;
+      s.frontcard = null;
+      s.backcard = null;
+      s.frontmaterial = null;
+      s.backmaterial = null;
+      s.skullmaterial = null;
+      s.modelgroup = null;
+      s.labelMeshes = [];
     };
   }, [
     autoRotate,

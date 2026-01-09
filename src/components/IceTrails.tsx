@@ -521,12 +521,13 @@ class IceTrailsApp {
     this.camera.lookAt(new THREE.Vector3(0, -2, 0));
 
     // Renderer
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: window.devicePixelRatio < 2,
+      antialias: !isMobile,
     });
     this.renderer.setSize(this.sizes.width, this.sizes.height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
 
     // Controls disabled
     this.controls = new OrbitControls(this.camera, this.canvas);
