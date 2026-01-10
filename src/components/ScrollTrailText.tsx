@@ -1,33 +1,43 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import gsap from "gsap";
 
 export default function ScrollTrailText() {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const rafId = useRef<number | null>(null);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
+    let ticking = false;
+
     const updatePosition = () => {
-      const scrollY = window.scrollY;
+      const scrollY = lastScrollY.current;
 
       textRefs.current.forEach((el, i) => {
         if (!el) return;
         const lagFactor = (4 - i) * 0.02;
-
-        gsap.to(el, {
-          y: -scrollY * lagFactor * 1.5,
-          overwrite: "auto",
-          ease: "power2.out",
-          duration: 0.5,
-        });
+        // Direct transform instead of GSAP for better perf
+        el.style.transform = `translateY(${-scrollY * lagFactor * 1.5}px)`;
       });
+
+      ticking = false;
     };
 
-    window.addEventListener("scroll", updatePosition);
+    const onScroll = () => {
+      lastScrollY.current = window.scrollY;
+
+      if (!ticking) {
+        rafId.current = requestAnimationFrame(updatePosition);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("scroll", updatePosition);
+      window.removeEventListener("scroll", onScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
     };
   }, []);
 

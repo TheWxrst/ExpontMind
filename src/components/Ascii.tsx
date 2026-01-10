@@ -3,15 +3,15 @@
 import { useEffect, useRef, useCallback } from "react";
 import { ArrowDown } from "lucide-react";
 
-const TARGET_LONG_SIDE = 128 * 74;
-const MIN_GRID_SIZE = 8;
+const TARGET_LONG_SIDE = 128 * 56;
+const MIN_GRID_SIZE = 4;
 const CELL_CROP_X = 1;
 const CELL_CROP_Y = 2;
 
 const FLUID_CELL = 0;
 const AIR_CELL = 1;
 const SOLID_CELL = 2;
-const GRAVITY = -9.81;
+const GRAVITY = -20;
 const SPEED_BASE = 1.0 / 60.0 / 3;
 const MOUSE_OBSTACLE_RADIUS = 0.1;
 const MOUSE_OBSTACLE_RADIUS_PRESSED = 0.25;
@@ -628,6 +628,7 @@ export function Ascii({ className = "" }: FooterProps) {
   } | null>(null);
   const animationRef = useRef<number | null>(null);
   const mousePositionRef = useRef({ x: -1000, y: -1000 }); // Start off-screen
+  const frameCountRef = useRef(0); // Track frames for initial settling
   const dimensionsRef = useRef({
     gridSize: MIN_GRID_SIZE,
     realWidth: 0,
@@ -711,8 +712,8 @@ export function Ascii({ className = "" }: FooterProps) {
       gravity: GRAVITY,
       dt: SPEED_BASE,
       flipRatio: 0.9,
-      numPressureIters: 30,
-      numParticleIters: 2,
+      numPressureIters: 15, // Reduced from 30 for better perf
+      numParticleIters: 1, // Reduced from 2 for better perf
       overRelaxation: 1.9,
       compensateDrift: true,
       separateParticles: true,

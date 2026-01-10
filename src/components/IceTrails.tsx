@@ -357,11 +357,11 @@ void main() {
 
   float accumulateFrosted = 0.;
 
-  for (int i = 0; i < 50; i++) {
-    float aplitude = float(70 - i) / 1.;
-    vec2 uv = vUv * 4. + vParallax * 0.002 * float(i + 1);
+  for (int i = 0; i < 20; i++) {
+    float aplitude = float(30 - i) / 1.;
+    vec2 uv = vUv * 4. + vParallax * 0.004 * float(i + 1);
     float currCrack = (1. - texture(uCracksMap, uv ).r) * aplitude;
-    float currTrail = texture(uTrailMap, vUv + vParallax * 0.0025 * float(i + 1)).r;
+    float currTrail = texture(uTrailMap, vUv + vParallax * 0.005 * float(i + 1)).r;
     currCrack = currCrack * step(0.7, 1. - pow(currTrail,0.7));
     cracks += currCrack;
     nomalization += aplitude;
@@ -484,6 +484,8 @@ class IceTrailsApp {
   smokeInputRT: THREE.WebGLRenderTarget;
   smokeOutputRT: THREE.WebGLRenderTarget;
   scrollProgress: number = 0;
+  scrollTicking: boolean = false;
+  frameCount: number = 0;
   targetCameraPos = { x: 0, y: 20, z: 0 };
 
   constructor(canvasElement: HTMLCanvasElement) {
@@ -663,24 +665,29 @@ class IceTrailsApp {
     this.scene.add(smokeMesh);
 
     // Events
-    window.addEventListener("pointermove", this.onPointerMove.bind(this));
+    window.addEventListener("pointermove", this.onPointerMove.bind(this), { passive: true });
     window.addEventListener("resize", this.onResize.bind(this));
-    window.addEventListener("scroll", this.onScroll.bind(this));
+    window.addEventListener("scroll", this.onScroll.bind(this), { passive: true });
 
     // Start animation
     this.animate();
   }
 
   onScroll() {
-    const windowHeight = window.innerHeight;
-    // 200vh (2 * windowHeight) scroll хийхэд animation бүрэн дуусна
-    const maxScroll = windowHeight * 2;
-    this.scrollProgress = Math.min(window.scrollY / maxScroll, 1);
+    // Throttle scroll calculations
+    if (this.scrollTicking) return;
+    this.scrollTicking = true;
 
-    // Camera position: from (0, 20, 0) to (0, 1, 25) as we scroll to 200vh
-    this.targetCameraPos.x = 0;
-    this.targetCameraPos.y = 20 - this.scrollProgress * 19; // 20 -> 1
-    this.targetCameraPos.z = this.scrollProgress * 25; // 0 -> 25
+    requestAnimationFrame(() => {
+      const windowHeight = window.innerHeight;
+      const maxScroll = windowHeight * 2;
+      this.scrollProgress = Math.min(window.scrollY / maxScroll, 1);
+
+      this.targetCameraPos.x = 0;
+      this.targetCameraPos.y = 20 - this.scrollProgress * 19;
+      this.targetCameraPos.z = this.scrollProgress * 25;
+      this.scrollTicking = false;
+    });
   }
 
   createRenderTarget(w: number, h: number) {
@@ -726,6 +733,7 @@ class IceTrailsApp {
   animate() {
     const dt = this.clock.getDelta();
     this.time += dt;
+    this.frameCount++;
 
     // Smooth camera position based on scroll
     this.camera.position.x +=
@@ -736,13 +744,16 @@ class IceTrailsApp {
       (this.targetCameraPos.z - this.camera.position.z) * 0.05;
     this.camera.lookAt(new THREE.Vector3(0, -2, 0));
 
-    this.raycaster.setFromCamera(this.pointer, this.camera);
-    const intersects = this.raycaster.intersectObject(this.ground);
+    // Throttle raycasting - only every 3rd frame
+    if (this.frameCount % 3 === 0) {
+      this.raycaster.setFromCamera(this.pointer, this.camera);
+      const intersects = this.raycaster.intersectObject(this.ground);
 
-    if (intersects.length > 0) {
-      const uv = intersects[0].uv;
-      if (uv) {
-        this.trailMaterial.uniforms.uUVPointer.value.lerp(uv, dt * 10);
+      if (intersects.length > 0) {
+        const uv = intersects[0].uv;
+        if (uv) {
+          this.trailMaterial.uniforms.uUVPointer.value.lerp(uv, dt * 30);
+        }
       }
     }
 

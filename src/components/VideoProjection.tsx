@@ -19,9 +19,12 @@ class VideoProjectionApp {
   hoveredPoint = new THREE.Vector3();
   hoverRadius = 0.8;
   scrollProgress = 0;
+  scrollTicking = false;
   targetRotationZ = 0;
+  frameCount = 0;
   videoElement: HTMLVideoElement | null = null;
   videoTexture: THREE.VideoTexture | null = null;
+  cachedMousePos = new THREE.Vector3();
 
   constructor(canvasElement: HTMLCanvasElement) {
     this.canvas = canvasElement;
@@ -88,22 +91,26 @@ class VideoProjectionApp {
     window.addEventListener("resize", this.onResize.bind(this));
 
     // Mouse move for hover effect
-    window.addEventListener("mousemove", this.onMouseMove.bind(this));
+    window.addEventListener("mousemove", this.onMouseMove.bind(this), { passive: true });
 
     // Scroll for rotation
-    window.addEventListener("scroll", this.onScroll.bind(this));
+    window.addEventListener("scroll", this.onScroll.bind(this), { passive: true });
 
     // Animate
     this.animate();
   }
 
   onScroll() {
-    const windowHeight = window.innerHeight;
-    // 300vh (3 * windowHeight) scroll хийхэд rotation бүрэн дуусна
-    const maxScroll = windowHeight * 3;
-    this.scrollProgress = Math.min(window.scrollY / maxScroll, 1);
-    // Rotate 180 degrees (PI radians) over the 300vh scroll
-    this.targetRotationZ = this.scrollProgress * Math.PI;
+    if (this.scrollTicking) return;
+    this.scrollTicking = true;
+
+    requestAnimationFrame(() => {
+      const windowHeight = window.innerHeight;
+      const maxScroll = windowHeight * 3;
+      this.scrollProgress = Math.min(window.scrollY / maxScroll, 1);
+      this.targetRotationZ = this.scrollProgress * Math.PI;
+      this.scrollTicking = false;
+    });
   }
 
   createVideoTexture() {
@@ -219,44 +226,42 @@ class VideoProjectionApp {
 
   animate() {
     requestAnimationFrame(this.animate.bind(this));
+    this.frameCount++;
     this.controls.update();
 
     // Smooth rotation based on scroll (rotate around Y axis)
     this.group.rotation.y +=
       (this.targetRotationZ - this.group.rotation.y) * 0.05;
 
-    // Get mouse position in world space (on z=0 plane)
-    const mouseWorld = new THREE.Vector3(this.mouse.x, this.mouse.y, 0);
-    mouseWorld.unproject(this.camera);
-    const dir = mouseWorld.sub(this.camera.position).normalize();
-    const distance = -this.camera.position.z / dir.z;
-    const mousePos = this.camera.position
-      .clone()
-      .add(dir.multiplyScalar(distance));
+    // Only calculate mouse world position every 2nd frame
+    if (this.frameCount % 2 === 0) {
+      const mouseWorld = new THREE.Vector3(this.mouse.x, this.mouse.y, 0);
+      mouseWorld.unproject(this.camera);
+      const dir = mouseWorld.sub(this.camera.position).normalize();
+      const distance = -this.camera.position.z / dir.z;
+      this.cachedMousePos.copy(this.camera.position).add(dir.multiplyScalar(distance));
+    }
 
-    // Update mesh positions based on hover
-    this.grids.forEach((gridGroup) => {
-      gridGroup.children.forEach((mesh) => {
-        const meshWorldPos = new THREE.Vector3();
-        mesh.getWorldPosition(meshWorldPos);
+    // Update mesh positions based on hover - only every 2nd frame
+    if (this.frameCount % 2 === 0) {
+      const mousePos = this.cachedMousePos;
+      this.grids.forEach((gridGroup) => {
+        const children = gridGroup.children;
+        for (let i = 0, len = children.length; i < len; i++) {
+          const mesh = children[i];
+          // Use local position instead of getWorldPosition for speed
+          const dx = mesh.position.x * 0.15 - mousePos.x;
+          const dy = mesh.position.y * 0.15 - mousePos.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Calculate distance from mouse to mesh (only x and y)
-        const dist = Math.sqrt(
-          Math.pow(meshWorldPos.x - mousePos.x, 2) +
-            Math.pow(meshWorldPos.y - mousePos.y, 2)
-        );
+          const effectStrength =
+            dist < this.hoverRadius ? 1 - dist / this.hoverRadius : 0;
+          const targetZ = effectStrength * 12;
 
-        // Target z position based on distance (closer = more forward)
-        const maxPush = 12; // Maximum push forward (z position) - large value
-        const effectStrength =
-          dist < this.hoverRadius ? 1 - dist / this.hoverRadius : 0;
-
-        const targetZ = effectStrength * maxPush;
-
-        // Smooth lerp to target z position only (no scale animation)
-        mesh.position.z += (targetZ - mesh.position.z) * 0.15;
+          mesh.position.z += (targetZ - mesh.position.z) * 0.15;
+        }
       });
-    });
+    }
 
     this.renderer.render(this.scene, this.camera);
   }

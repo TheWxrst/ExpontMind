@@ -25,8 +25,8 @@ const isMobile =
   typeof navigator !== "undefined" &&
   /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-const PageScrollContext = createContext<{ scrollProgress: number }>({
-  scrollProgress: 0,
+const PageScrollContext = createContext<{ getScrollProgress: () => number }>({
+  getScrollProgress: () => 0,
 });
 
 const GOLDENRATIO = 1.61803398875;
@@ -59,7 +59,7 @@ function Gallery({ usePageScroll = false }: GalleryProps) {
   const ref = useRef<THREE.Group>(null);
   const scroll = usePageScroll ? null : useScroll();
   const { clicked } = useContext(ClickedContext);
-  const { scrollProgress } = useContext(PageScrollContext);
+  const { getScrollProgress } = useContext(PageScrollContext);
   // Дарсан үеийн scroll offset хадгалах
   const savedOffset = useRef(0);
   // Өмнө нь clicked байсан эсэх (буцах animation-д хэрэглэнэ)
@@ -73,7 +73,7 @@ function Gallery({ usePageScroll = false }: GalleryProps) {
     if (!ref.current) return;
 
     // Page scroll эсвэл drei scroll ашиглах
-    const currentOffset = usePageScroll ? scrollProgress : scroll?.offset ?? 0;
+    const currentOffset = usePageScroll ? getScrollProgress() : scroll?.offset ?? 0;
 
     if (clicked) {
       // Clicked state руу орлоо
@@ -271,12 +271,12 @@ function Scene({ usePageScroll = false }: SceneProps) {
 
 interface TrainSceneProps {
   usePageScroll?: boolean;
-  scrollProgress?: number;
+  getScrollProgress?: () => number;
 }
 
 export default function TrainScene({
   usePageScroll = false,
-  scrollProgress = 0,
+  getScrollProgress = () => 0,
 }: TrainSceneProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -310,7 +310,7 @@ export default function TrainScene({
   return (
     <div ref={observerRef} className="sticky top-0 h-screen w-full">
       {hasLoaded ? (
-        <PageScrollContext.Provider value={{ scrollProgress }}>
+        <PageScrollContext.Provider value={{ getScrollProgress }}>
           <Canvas
             dpr={isMobile ? 1 : [1, 1.5]}
             shadows={!isMobile}

@@ -165,16 +165,16 @@ export const Scene = (props: SceneProps) => {
       <Stars
         radius={100}
         depth={120}
-        count={8000}
+        count={3000}
         factor={15}
         saturation={0}
         fade
         speed={1}
       />
 
-      <ambientLight intensity={0.01} color="#ffffff" />
+      <ambientLight intensity={0.05} color="#ffffff" />
 
-      <hemisphereLight color="#707070" groundColor="#000000" intensity={0.3} />
+      <hemisphereLight color="#707070" groundColor="#000000" intensity={0.4} />
 
       <spotLight
         position={[0, -50, 30]}
@@ -182,48 +182,16 @@ export const Scene = (props: SceneProps) => {
         angle={0.3}
         decay={0.6}
         penumbra={1}
-        intensity={12}
-      />
-      <spotLight
-        position={[0, -50, 30]}
-        color="#ffffff"
-        angle={0.2}
-        decay={0.5}
-        penumbra={1}
-        intensity={12}
+        intensity={20}
       />
 
-      <spotLight
-        position={[0, 10, 120]}
-        color="#ffffff"
-        angle={0.5}
-        decay={0.8}
-        penumbra={1}
-        intensity={15}
-      />
       <spotLight
         position={[0, 10, 120]}
         color="#ffffff"
         angle={0.4}
         decay={0.6}
         penumbra={1}
-        intensity={15}
-      />
-      <spotLight
-        position={[0, 10, 120]}
-        color="#ffffff"
-        angle={0.3}
-        decay={0.5}
-        penumbra={1}
-        intensity={15}
-      />
-      <spotLight
-        position={[0, 10, 120]}
-        color="#ffffff"
-        angle={0.2}
-        decay={0.4}
-        penumbra={1}
-        intensity={15}
+        intensity={25}
       />
     </Canvas>
   );

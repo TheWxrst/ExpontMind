@@ -20,11 +20,12 @@ import { useTrainSceneScroll } from "@/hooks/useTrainSceneScroll";
 import { useDisableScrollOnLoading } from "@/hooks/useDisableScrollOnLoading";
 import { useGsapScrollAnimations } from "@/hooks/useGsapScrollAnimations";
 import { TextHoverEffect } from "@/components/ui/text-hover-effect";
+import CardStack from "@/components/CardStack";
 
 export default function Home() {
   const textItemRef = useRef<HTMLDivElement>(null);
   const { isLoading } = useLoading();
-  const { scrollProgress, containerRef } = useTrainSceneScroll();
+  const { getScrollProgress, containerRef } = useTrainSceneScroll();
 
   useTextVisibility(textItemRef);
   useDisableScrollOnLoading(isLoading);
@@ -137,7 +138,7 @@ export default function Home() {
 
       <Partners />
 
-      {/* <CardStack /> */}
+      <CardStack />
 
       <div
         ref={containerRef}
@@ -146,7 +147,7 @@ export default function Home() {
         <div className="h-[32vh] flex items-center justify-center">
           <TextHoverEffect text="PROJECTS" />
         </div>
-        <TrainScene usePageScroll scrollProgress={scrollProgress} />
+        <TrainScene usePageScroll getScrollProgress={getScrollProgress} />
       </div>
 
       <section className="ascii_section relative h-[250vh]">
