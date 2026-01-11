@@ -31,6 +31,12 @@ const PageScrollContext = createContext<{ getScrollProgress: () => number }>({
 
 const GOLDENRATIO = 1.61803398875;
 
+// Get responsive scale based on mobile
+const getResponsiveScale = () => {
+  if (typeof window === "undefined") return 1;
+  return window.innerWidth < 640 ? 0.65 : window.innerWidth < 768 ? 0.8 : 1;
+};
+
 const pexel = (id: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260`;
 
@@ -73,7 +79,9 @@ function Gallery({ usePageScroll = false }: GalleryProps) {
     if (!ref.current) return;
 
     // Page scroll эсвэл drei scroll ашиглах
-    const currentOffset = usePageScroll ? getScrollProgress() : scroll?.offset ?? 0;
+    const currentOffset = usePageScroll
+      ? getScrollProgress()
+      : scroll?.offset ?? 0;
 
     if (clicked) {
       // Clicked state руу орлоо
@@ -153,9 +161,18 @@ function Frame({ url, index, position, rotation = [0, 0, 0] }: FrameProps) {
   const frame = useRef<THREE.Mesh>(null);
   const [hovered, hover] = useState(false);
   const [rnd] = useState(() => Math.random());
+  const [scale, setScale] = useState(1);
   const { clicked, setClicked } = useContext(ClickedContext);
   const name = `frame-${index}`;
   const isActive = clicked === name;
+
+  // Set responsive scale on mount and resize
+  useEffect(() => {
+    const updateScale = () => setScale(getResponsiveScale());
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
 
   useCursor(hovered);
 
@@ -184,6 +201,9 @@ function Frame({ url, index, position, rotation = [0, 0, 0] }: FrameProps) {
     );
   });
 
+  const frameSize = 6 * scale;
+  const frameHeight = GOLDENRATIO * frameSize;
+
   return (
     <group position={position} rotation={rotation}>
       <mesh
@@ -197,8 +217,8 @@ function Frame({ url, index, position, rotation = [0, 0, 0] }: FrameProps) {
           hover(true);
         }}
         onPointerOut={() => hover(false)}
-        scale={[6, GOLDENRATIO * 6, 0.05]}
-        position={[0, (GOLDENRATIO * 6) / 2, 0]}
+        scale={[frameSize, frameHeight, 0.05]}
+        position={[0, frameHeight / 2, 0]}
       >
         <boxGeometry />
         <meshStandardMaterial

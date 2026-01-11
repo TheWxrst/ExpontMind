@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { JSX, useRef } from "react";
-import { MeshTransmissionMaterial, useGLTF } from "@react-three/drei";
+import { JSX, useRef, useState, useEffect } from "react";
+import { MeshTransmissionMaterial, useGLTF, Center } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import { useFrame } from "@react-three/fiber";
 
@@ -22,10 +22,28 @@ const materialProps = {
   backside: true,
 };
 
+// Responsive scale based on viewport width
+const getResponsiveScale = () => {
+  if (typeof window === "undefined") return 1.5;
+  const width = window.innerWidth;
+  if (width < 480) return 1.0;
+  if (width < 640) return 1.2;
+  if (width < 768) return 1.35;
+  return 1.5;
+};
+
 export function Logo(props: JSX.IntrinsicElements["group"]) {
   const { nodes } = useGLTF("/Logo.glb") as unknown as GLTFResult;
   const groupRef = useRef<THREE.Group>(null);
   const targetRotationZ = useRef(0);
+  const [scale, setScale] = useState(getResponsiveScale);
+
+  // Handle resize for responsive scale
+  useEffect(() => {
+    const handleResize = () => setScale(getResponsiveScale());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -42,17 +60,19 @@ export function Logo(props: JSX.IntrinsicElements["group"]) {
   });
 
   return (
-    <group
-      ref={groupRef}
-      {...props}
-      dispose={null}
-      scale={props.scale ?? 1.5}
-      rotation={props.rotation ?? [-Math.PI / 2, 0, 0]}
-    >
-      <mesh {...nodes.path1}>
-        <MeshTransmissionMaterial {...materialProps} />
-      </mesh>
-    </group>
+    <Center>
+      <group
+        ref={groupRef}
+        {...props}
+        dispose={null}
+        scale={props.scale ?? scale}
+        rotation={props.rotation ?? [-Math.PI / 2, 0, 0]}
+      >
+        <mesh {...nodes.path1}>
+          <MeshTransmissionMaterial {...materialProps} />
+        </mesh>
+      </group>
+    </Center>
   );
 }
 

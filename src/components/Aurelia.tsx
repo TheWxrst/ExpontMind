@@ -79,10 +79,10 @@ export function Aurelia({ className = "", onLoad, onError }: AureliaProps) {
   if (error) {
     return (
       <div className={`flex items-center justify-center bg-black ${className}`}>
-        <div className="text-center max-w-md px-6">
-          <p className="text-red-400 text-xl mb-4">WebGPU Error</p>
-          <p className="text-gray-400 text-sm mb-6">{error}</p>
-          <p className="text-gray-500 text-xs">
+        <div className="text-center max-w-[280px] sm:max-w-md px-4 sm:px-6">
+          <p className="text-red-400 text-lg sm:text-xl mb-3 sm:mb-4">WebGPU Error</p>
+          <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">{error}</p>
+          <p className="text-gray-500 text-[10px] sm:text-xs">
             Please use Chrome 113+ or Edge 113+ with WebGPU enabled.
           </p>
         </div>
@@ -98,10 +98,10 @@ export function Aurelia({ className = "", onLoad, onError }: AureliaProps) {
       {/* Loading overlay - covers iframe completely */}
       {isLoading && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-50 pointer-events-none">
-          <div className="w-[200px] h-[5px] bg-gray-800 rounded overflow-hidden">
+          <div className="w-[150px] sm:w-[200px] h-[4px] sm:h-[5px] bg-gray-800 rounded overflow-hidden">
             <div className="h-full bg-gray-500 animate-pulse w-1/2" />
           </div>
-          <p className="text-gray-500 text-sm mt-4">Loading Aurelia...</p>
+          <p className="text-gray-500 text-xs sm:text-sm mt-3 sm:mt-4">Loading Aurelia...</p>
         </div>
       )}
 

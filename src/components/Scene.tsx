@@ -1,9 +1,31 @@
 import * as THREE from "three";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { Mountain } from "./Mountain";
 import { Logo } from "./Logo";
+
+// Get responsive X offset for mobile centering (for mountain, lights)
+const getResponsiveXOffset = () => {
+  if (typeof window === "undefined") return 0;
+  const w = window.innerWidth;
+  // Mobile: shift everything left to center the mountain
+  if (w < 480) return -15;
+  if (w < 640) return -20;
+  if (w < 768) return -25;
+  return 0;
+};
+
+// Get responsive X offset for logo (smaller movement)
+const getLogoXOffset = () => {
+  if (typeof window === "undefined") return 0;
+  const w = window.innerWidth;
+  // Logo moves less than mountain for better centering
+  if (w < 480) return 20;
+  if (w < 640) return 20;
+  if (w < 768) return 20;
+  return 0;
+};
 
 interface SceneProps {
   startVP?: number; // Start viewport multiplier (default: 2)
@@ -13,9 +35,20 @@ interface SceneProps {
 // Logo that moves with scroll like camera
 function AnimatedLogo({ startVP = 4, endVP = 8.5 }: SceneProps) {
   const logoRef = useRef<THREE.Group>(null);
+  const xOffset = useRef(0);
 
   const initialY = 40;
   const initialZ = -32;
+
+  // Update xOffset on mount and resize
+  useEffect(() => {
+    const updateOffset = () => {
+      xOffset.current = getLogoXOffset();
+    };
+    updateOffset();
+    window.addEventListener("resize", updateOffset);
+    return () => window.removeEventListener("resize", updateOffset);
+  }, []);
 
   useFrame(() => {
     if (!logoRef.current) return;
@@ -32,10 +65,12 @@ function AnimatedLogo({ startVP = 4, endVP = 8.5 }: SceneProps) {
     );
 
     // Logo moves similar to camera but stays in front of it
+    const targetX = xOffset.current;
     const targetY = initialY + progress * -100;
     const targetZ = initialZ + progress * 80;
 
     // Smooth lerp
+    logoRef.current.position.x += (targetX - logoRef.current.position.x) * 0.1;
     logoRef.current.position.y += (targetY - logoRef.current.position.y) * 0.1;
     logoRef.current.position.z += (targetZ - logoRef.current.position.z) * 0.1;
   });
@@ -81,6 +116,7 @@ function ScrollCamera({ startVP = 4, endVP = 8.5 }: SceneProps) {
       );
 
       // Move camera back (increase z) as user scrolls down
+      // Camera stays at x=0, scene objects move instead
       targetPosition.current.set(
         0,
         0 + progress * -200, // y: -100 to -180 (move up)
@@ -136,26 +172,19 @@ function ScrollCamera({ startVP = 4, endVP = 8.5 }: SceneProps) {
   return null;
 }
 
-export const Scene = (props: SceneProps) => {
+// Scene content with responsive lights
+function SceneContent(props: SceneProps) {
+  const [xOffset, setXOffset] = useState(0);
+
+  useEffect(() => {
+    const updateOffset = () => setXOffset(getResponsiveXOffset());
+    updateOffset();
+    window.addEventListener("resize", updateOffset);
+    return () => window.removeEventListener("resize", updateOffset);
+  }, []);
+
   return (
-    <Canvas
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-      }}
-      resize={{ scroll: false, debounce: { scroll: 100, resize: 0 } }}
-      shadows
-      dpr={[1, 2]}
-      gl={{
-        antialias: true,
-        alpha: false,
-        powerPreference: "high-performance",
-      }}
-      camera={{ position: [0, -180, 100], fov: 45 }}
-    >
+    <>
       <ScrollCamera {...props} />
 
       <AnimatedLogo {...props} />
@@ -177,7 +206,7 @@ export const Scene = (props: SceneProps) => {
       <hemisphereLight color="#707070" groundColor="#000000" intensity={0.4} />
 
       <spotLight
-        position={[0, -50, 30]}
+        position={[xOffset, -50, 30]}
         color="#ffffff"
         angle={0.3}
         decay={0.6}
@@ -186,13 +215,38 @@ export const Scene = (props: SceneProps) => {
       />
 
       <spotLight
-        position={[0, 10, 120]}
+        position={[xOffset, 10, 120]}
         color="#ffffff"
         angle={0.4}
         decay={0.6}
         penumbra={1}
         intensity={25}
       />
+    </>
+  );
+}
+
+export const Scene = (props: SceneProps) => {
+  return (
+    <Canvas
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+      }}
+      resize={{ scroll: false, debounce: { scroll: 100, resize: 0 } }}
+      shadows
+      dpr={[1, 2]}
+      gl={{
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance",
+      }}
+      camera={{ position: [0, -180, 100], fov: 45 }}
+    >
+      <SceneContent {...props} />
     </Canvas>
   );
 };

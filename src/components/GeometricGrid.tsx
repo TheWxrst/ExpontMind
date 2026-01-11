@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 interface CircleTransition {
   initial: { cx: number; cy: number; r: number };
@@ -16,12 +16,29 @@ interface GeometricGridProps {
   gridOpacity?: number;
 }
 
+// Get responsive dimensions based on screen size
+const getResponsiveDimensions = () => {
+  if (typeof window === "undefined") {
+    return { width: 1920, height: 1080, margin: 100, gridSpacing: 48, d: 80 };
+  }
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (w < 640) {
+    return { width: w, height: h, margin: 16, gridSpacing: 24, d: 40 };
+  }
+  if (w < 1024) {
+    return { width: w, height: h, margin: 40, gridSpacing: 36, d: 60 };
+  }
+  return { width: 1920, height: 1080, margin: 100, gridSpacing: 48, d: 80 };
+};
+
 export default function GeometricGrid({
   zIndex = 50,
   showDebugText = true,
   gridColor = "rgba(245, 245, 245, 0.15)",
   gridOpacity = 0.3,
 }: GeometricGridProps) {
+  const [dims, setDims] = useState(getResponsiveDimensions);
   const gridLinesRef = useRef<SVGGElement>(null);
   const circlesOutlineRef = useRef<SVGGElement>(null);
   const circlesFilledRef = useRef<SVGGElement>(null);
@@ -44,8 +61,11 @@ export default function GeometricGrid({
     circlesOutlineGroup.innerHTML = "";
     circlesFilledGroup.innerHTML = "";
 
-    const gridSpacing = 48;
-    for (let i = 0; i <= 40; i++) {
+    const { width, height, gridSpacing, d } = dims;
+    const numVerticalLines = Math.ceil(width / gridSpacing);
+    const numHorizontalLines = Math.ceil(height / gridSpacing);
+
+    for (let i = 0; i <= numVerticalLines; i++) {
       const vLine = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "line"
@@ -54,13 +74,13 @@ export default function GeometricGrid({
       vLine.setAttribute("x1", String(i * gridSpacing));
       vLine.setAttribute("y1", "0");
       vLine.setAttribute("x2", String(i * gridSpacing));
-      vLine.setAttribute("y2", "1080");
+      vLine.setAttribute("y2", String(height));
       vLine.style.stroke = gridColor;
       vLine.style.strokeWidth = "1";
       vLine.style.strokeOpacity = String(gridOpacity);
       gridLinesGroup.appendChild(vLine);
 
-      if (i <= 22) {
+      if (i <= numHorizontalLines) {
         const hLine = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "line"
@@ -68,7 +88,7 @@ export default function GeometricGrid({
         hLine.setAttribute("class", "grid-line");
         hLine.setAttribute("x1", "0");
         hLine.setAttribute("y1", String(i * gridSpacing));
-        hLine.setAttribute("x2", "1920");
+        hLine.setAttribute("x2", String(width));
         hLine.setAttribute("y2", String(i * gridSpacing));
         hLine.style.stroke = gridColor;
         hLine.style.strokeWidth = "1";
@@ -77,9 +97,8 @@ export default function GeometricGrid({
       }
     }
 
-    const d = 80;
-    const centerX = 960;
-    const centerY = 540;
+    const centerX = width / 2;
+    const centerY = height / 2;
 
     const transitions: CircleTransition[] = [
       {
@@ -166,7 +185,14 @@ export default function GeometricGrid({
     });
 
     circleTransitionsRef.current = transitions;
-  }, [gridColor, gridOpacity]);
+  }, [gridColor, gridOpacity, dims]);
+
+  // Handle resize
+  useEffect(() => {
+    const handleResize = () => setDims(getResponsiveDimensions());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     setupGrid();
@@ -288,96 +314,115 @@ export default function GeometricGrid({
     };
   }, [setupGrid, showDebugText, gridOpacity]);
 
+  // Calculate text positions based on dims
+  const leftMargin = dims.margin;
+  const rightTextX = dims.width - dims.margin - 100;
+  const bottomY = dims.height - 100;
+  const fontSize = dims.width < 640 ? 10 : 12;
+  const lineHeight = dims.width < 640 ? 12 : 15;
+  // Hide debug text on very small screens
+  const shouldShowText = showDebugText && dims.width >= 480;
+
   return (
     <div
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex }}
     >
-      <svg className="w-full h-full" viewBox="0 0 1920 1080">
+      <svg className="w-full h-full" viewBox={`0 0 ${dims.width} ${dims.height}`}>
         <g ref={gridLinesRef} />
         <g ref={circlesOutlineRef} />
         <g ref={circlesFilledRef}>
           <clipPath id="right-half">
-            <rect x="960" y="0" width="960" height="1080" />
+            <rect x={dims.width / 2} y="0" width={dims.width / 2} height={dims.height} />
           </clipPath>
         </g>
 
-        {showDebugText && (
+        {shouldShowText && (
           <>
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="100"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={leftMargin}
             >
               THE CREATIVE
             </text>
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="115"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={leftMargin + lineHeight}
             >
               PROCESS
             </text>
 
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="1720"
-              y="100"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={rightTextX}
+              y={leftMargin}
             >
               THE ESSENCE
             </text>
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="1720"
-              y="115"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={rightTextX}
+              y={leftMargin + lineHeight}
             >
               OF SOUND
             </text>
 
             <text
               ref={debugLine1Ref}
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="980"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={bottomY}
             >
               AWARENESS: SILENCE
             </text>
             <text
               ref={debugLine2Ref}
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="995"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={bottomY + lineHeight}
             >
               STATE: VOID
             </text>
             <text
               ref={debugLine3Ref}
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="1010"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={bottomY + lineHeight * 2}
             >
               ENERGY: DORMANT
             </text>
             <text
               ref={debugLine4Ref}
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="100"
-              y="1025"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={leftMargin}
+              y={bottomY + lineHeight * 3}
             >
               PRESENCE: SOLID
             </text>
 
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="1620"
-              y="980"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={rightTextX}
+              y={bottomY}
             >
               BETWEEN THE
             </text>
             <text
-              className="font-mono text-[12px] fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
-              x="1620"
-              y="995"
+              className="font-mono fill-[rgba(245,245,245,0.6)] uppercase tracking-[0.1em]"
+              style={{ fontSize: `${fontSize}px` }}
+              x={rightTextX}
+              y={bottomY + lineHeight}
             >
               HEARTBEATS
             </text>

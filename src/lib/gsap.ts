@@ -2,13 +2,14 @@
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { Observer } from "gsap/all";
 
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, Observer);
+  gsap.registerPlugin(ScrollTrigger, ScrollToPlugin, Observer);
 }
 
-export { gsap, ScrollTrigger, Observer };
+export { gsap, ScrollTrigger, ScrollToPlugin, Observer };
 
 export const EASING = {
   cameraMove: "power2.out",

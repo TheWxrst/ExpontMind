@@ -1,12 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// Responsive font size
+const getResponsiveFontSize = () => {
+  if (typeof window === "undefined") return "13.4vw";
+  return window.innerWidth < 640 ? "11vw" : "13.4vw";
+};
 
 export default function ScrollTrailText() {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rafId = useRef<number | null>(null);
   const lastScrollY = useRef(0);
+  // Use consistent initial value to avoid hydration mismatch
+  const [fontSize, setFontSize] = useState("13.4vw");
+
+  // Handle resize for responsive font size - also set initial value on mount
+  useEffect(() => {
+    setFontSize(getResponsiveFontSize());
+    const handleResize = () => setFontSize(getResponsiveFontSize());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -58,7 +74,7 @@ export default function ScrollTrailText() {
             color: i === 4 ? "#fff" : "transparent",
             WebkitTextStroke: i === 4 ? "none" : "1px #fff",
             opacity: i === 4 ? 1 : 0.4, // dimmer trails
-            fontSize: "13.4vw", // Matching previous setup
+            fontSize, // Responsive font size
             willChange: "transform",
           }}
         >

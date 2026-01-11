@@ -3,11 +3,13 @@
 interface FooterProps {
   className?: string;
   style?: React.CSSProperties;
+  id?: string;
 }
 
-export default function Footer({ className = "", style }: FooterProps) {
+export default function Footer({ className = "", style, id }: FooterProps) {
   return (
     <div
+      id={id}
       className="relative h-[50vh]"
       style={{
         clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)",
@@ -21,9 +23,9 @@ export default function Footer({ className = "", style }: FooterProps) {
         >
           <div className="w-full h-full flex flex-col justify-between">
             {/* Main Content */}
-            <div className="flex justify-between w-full mb-8">
+            <div className="flex flex-col sm:flex-row justify-between w-full mb-8 gap-4 sm:gap-0">
               {/* Left Column */}
-              <div className="flex flex-col gap-[0.15rem] text-[12px]">
+              <div className="flex flex-col gap-[0.15rem] text-[10px] sm:text-[12px]">
                 <p>THE DARKNESS</p>
                 <p>IS WHERE</p>
                 <p>LIGHT IS BORN</p>
@@ -33,7 +35,7 @@ export default function Footer({ className = "", style }: FooterProps) {
               </div>
 
               {/* Right Column */}
-              <div className="flex flex-col gap-[0.15rem] text-[12px] text-right max-w-[40%]">
+              <div className="flex flex-col gap-[0.15rem] text-[10px] sm:text-[12px] text-left sm:text-right max-w-full sm:max-w-[50%] md:max-w-[40%]">
                 <p>CREATIVITY FLOWS THROUGH</p>
                 <p>INFINITE PATHWAYS</p>
                 <p>CONSCIOUSNESS EXPANDS</p>
@@ -60,11 +62,11 @@ export default function Footer({ className = "", style }: FooterProps) {
           </div>
 
           {/* Bottom SVG/Logo Section */}
-          <div className="w-full mt-8">
+          <div className="w-full mt-4 sm:mt-8">
             <div className="w-full flex items-center justify-center">
               <svg
                 viewBox="0 0 800 100"
-                className="w-full max-w-4xl h-auto"
+                className="w-full max-w-[280px] sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-auto"
                 fill="rgba(245, 245, 245, 0.9)"
               >
                 <text
@@ -72,7 +74,7 @@ export default function Footer({ className = "", style }: FooterProps) {
                   y="50%"
                   dominantBaseline="middle"
                   textAnchor="middle"
-                  className="font-mono text-[72px] uppercase tracking-[0.3em]"
+                  className="font-mono uppercase tracking-[0.2em] sm:tracking-[0.3em]"
                   style={{ fontSize: "72px" }}
                 >
                   EXPONT MIND
@@ -82,8 +84,8 @@ export default function Footer({ className = "", style }: FooterProps) {
           </div>
 
           {/* Bottom Links */}
-          <div className="w-full flex justify-between items-center mt-8 pt-4 border-t border-white/10">
-            <div className="flex gap-8 text-[10px] tracking-widest">
+          <div className="w-full flex flex-col sm:flex-row justify-between items-center mt-4 sm:mt-8 pt-4 border-t border-white/10 gap-4 sm:gap-0">
+            <div className="flex gap-4 sm:gap-8 text-[9px] sm:text-[10px] tracking-widest">
               <a
                 href="#"
                 className="text-[rgba(245,245,245,0.6)] no-underline hover:text-[rgba(245,245,245,0.9)] transition-colors"
@@ -104,7 +106,7 @@ export default function Footer({ className = "", style }: FooterProps) {
               </a>
             </div>
 
-            <div className="flex gap-8 text-[10px] tracking-widest">
+            <div className="flex gap-4 sm:gap-8 text-[9px] sm:text-[10px] tracking-widest">
               <a
                 href="https://twitter.com"
                 target="_blank"
@@ -131,7 +133,7 @@ export default function Footer({ className = "", style }: FooterProps) {
               </a>
             </div>
 
-            <div className="text-[10px] tracking-widest text-[rgba(245,245,245,0.4)]">
+            <div className="text-[9px] sm:text-[10px] tracking-widest text-[rgba(245,245,245,0.4)]">
               © {new Date().getFullYear()} EXPONT MIND
             </div>
           </div>

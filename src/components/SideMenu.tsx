@@ -1,14 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { gsap } from "@/lib/gsap";
+
+// Responsive menu dimensions based on screen size
+const getMenuDimensions = () => {
+  if (typeof window === "undefined")
+    return { width: "480px", height: "500px", top: "-25px", right: "-25px" };
+  const w = window.innerWidth;
+  if (w < 640)
+    return {
+      width: "calc(100vw - 10px)",
+      height: "auto",
+      top: "-10px",
+      right: "-10px",
+    };
+  if (w < 768)
+    return { width: "320px", height: "auto", top: "-15px", right: "-15px" };
+  return { width: "480px", height: "auto", top: "-25px", right: "-25px" };
+};
 
 const links = [
-  { title: "Projects", href: "/" },
-  { title: "Agency", href: "/" },
-  { title: "Expertise", href: "/" },
-  { title: "Careers", href: "/" },
-  { title: "Contact", href: "/" },
+  { title: "Home", href: "#", action: "scroll-top" },
+  { title: "Projects", href: "#projects", action: "scroll" },
+  { title: "Contact", href: "#contact", action: "scroll" },
+  {
+    title: "Let's Talk",
+    href: "mailto:expontmindsolutions@gmail.com",
+    action: "email",
+  },
 ];
 
 const footerLinks = [
@@ -18,12 +39,12 @@ const footerLinks = [
   { title: "Twitter", href: "/" },
 ];
 
-const menuVariants = {
+const getMenuVariants = (dims: ReturnType<typeof getMenuDimensions>) => ({
   open: {
-    width: "480px",
-    height: "650px",
-    top: "-25px",
-    right: "-25px",
+    width: dims.width,
+    height: dims.height,
+    top: dims.top,
+    right: dims.right,
     transition: {
       duration: 0.75,
       type: "tween" as const,
@@ -42,7 +63,7 @@ const menuVariants = {
       ease: [0.76, 0, 0.24, 1] as [number, number, number, number],
     },
   },
-};
+});
 
 const perspective = {
   initial: {
@@ -97,13 +118,16 @@ const slideIn = {
   },
 };
 
-function PerspectiveText({ label }: { label: string }) {
+function PerspectiveText({
+  label,
+  textColor = "text-black",
+}: {
+  label: string;
+  textColor?: string;
+}) {
   return (
-    <div className="flex flex-col justify-center items-center h-full w-full transform-3d transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:transform-[rotateX(90deg)]">
-      <p className="m-0 uppercase pointer-events-none transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:-translate-y-full group-hover:opacity-0 text-black">
-        {label}
-      </p>
-      <p className="m-0 uppercase pointer-events-none absolute origin-bottom transform-[rotateX(-90deg)_translateY(9px)] opacity-0 transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:opacity-100 text-white">
+    <div className="flex justify-center items-center h-full w-full">
+      <p className={`m-0 uppercase pointer-events-none ${textColor}`}>
         {label}
       </p>
     </div>
@@ -138,17 +162,49 @@ function MenuButton({
           className="group w-full h-full bg-black flex items-center justify-center text-white"
           onClick={toggleMenu}
         >
-          <PerspectiveText label="Close" />
+          <PerspectiveText label="Close" textColor="text-white" />
         </div>
       </motion.div>
     </div>
   );
 }
 
-function Nav() {
+function Nav({ onClose }: { onClose: () => void }) {
+  const handleLinkClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    link: (typeof links)[0]
+  ) => {
+    if (link.action === "scroll-top") {
+      e.preventDefault();
+      onClose();
+      setTimeout(() => {
+        gsap.to(window, {
+          duration: 1.2,
+          scrollTo: { y: 0 },
+          ease: "power3.inOut",
+        });
+      }, 300);
+    } else if (link.action === "scroll") {
+      e.preventDefault();
+      onClose();
+      setTimeout(() => {
+        const element = document.querySelector(link.href);
+        if (element) {
+          gsap.to(window, {
+            duration: 1.2,
+            scrollTo: { y: element, offsetY: 0 },
+            ease: "power3.inOut",
+          });
+        }
+      }, 300);
+    } else if (link.action === "email") {
+      onClose();
+    }
+  };
+
   return (
-    <div className="flex flex-col justify-between px-10 pt-[100px] pb-[50px] h-full box-border">
-      <div className="flex flex-col gap-[10px]">
+    <div className="flex flex-col gap-10 justify-between px-6 sm:px-8 md:px-10 pt-[60px] sm:pt-[80px] md:pt-[100px] pb-[30px] sm:pb-[40px] md:pb-[50px] h-full box-border">
+      <div className="flex flex-col gap-[8px] sm:gap-[10px]">
         {links.map((link, i) => (
           <div
             key={`b_${i}`}
@@ -163,7 +219,8 @@ function Nav() {
             >
               <a
                 href={link.href}
-                className="text-black no-underline text-[46px]"
+                onClick={(e) => handleLinkClick(e, link)}
+                className="text-black no-underline text-[28px] sm:text-[36px] md:text-[46px]"
               >
                 {link.title}
               </a>
@@ -181,7 +238,7 @@ function Nav() {
             animate="enter"
             exit="exit"
             key={`f_${i}`}
-            className="w-1/2 mt-[5px] no-underline text-black"
+            className="w-1/2 mt-[5px] no-underline text-black text-sm sm:text-base"
           >
             {link.title}
           </motion.a>
@@ -193,16 +250,27 @@ function Nav() {
 
 export default function SideMenu() {
   const [isActive, setIsActive] = useState(false);
+  const [menuDims, setMenuDims] = useState(getMenuDimensions());
+
+  useEffect(() => {
+    const handleResize = () => setMenuDims(getMenuDimensions());
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const menuVariants = getMenuVariants(menuDims);
 
   return (
-    <div className="fixed right-[50px] top-[50px] z-100">
+    <div className="fixed right-4 top-4 sm:right-[30px] sm:top-[30px] md:right-[50px] md:top-[50px] z-100">
       <motion.div
         className="bg-white rounded-[25px] relative"
         variants={menuVariants}
         animate={isActive ? "open" : "closed"}
         initial="closed"
       >
-        <AnimatePresence>{isActive && <Nav />}</AnimatePresence>
+        <AnimatePresence>
+          {isActive && <Nav onClose={() => setIsActive(false)} />}
+        </AnimatePresence>
       </motion.div>
       <MenuButton
         isActive={isActive}

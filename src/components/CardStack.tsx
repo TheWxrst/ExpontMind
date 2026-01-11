@@ -1,7 +1,23 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
+
+// Check if mobile
+const isMobile = () => {
+  if (typeof window === "undefined") return false;
+  return window.innerWidth < 640;
+};
+
+// Get responsive card dimensions based on screen size
+const getCardDimensions = () => {
+  if (typeof window === "undefined") return { width: 320, height: 480, gap: 24 };
+  const w = window.innerWidth;
+  if (w < 480) return { width: 260, height: 390, gap: 40 };
+  if (w < 640) return { width: 280, height: 420, gap: 40 };
+  if (w < 768) return { width: 280, height: 420, gap: 20 };
+  return { width: 320, height: 480, gap: 24 };
+};
 
 const HolographicCard = dynamic(() => import("@/components/HolographicCard"), {
   ssr: false,
@@ -23,6 +39,85 @@ interface CardData {
 interface CardStackProps {
   cards?: CardData[];
   className?: string;
+}
+
+// Mobile card component - flips once when entering viewport (no state)
+function MobileCard({
+  card,
+  cardDims,
+  index,
+}: {
+  card: CardData;
+  cardDims: { width: number; height: number; gap: number };
+  index: number;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const hasFlippedRef = useRef(false);
+
+  useEffect(() => {
+    const cardEl = cardRef.current;
+    const innerEl = innerRef.current;
+    if (!cardEl || !innerEl) return;
+
+    // Use IntersectionObserver to detect when card enters viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasFlippedRef.current) {
+            hasFlippedRef.current = true;
+            // Add staggered delay based on index for visual effect
+            setTimeout(() => {
+              innerEl.style.transform = "rotateY(0deg)";
+            }, index * 100);
+          }
+        });
+      },
+      {
+        threshold: 0.5, // Trigger when 50% of card is visible
+        rootMargin: "-10% 0px -10% 0px",
+      }
+    );
+
+    observer.observe(cardEl);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [index]);
+
+  return (
+    <div
+      ref={cardRef}
+      style={{
+        width: `${cardDims.width}px`,
+        height: `${cardDims.height}px`,
+        perspective: "1200px",
+      }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          width: "100%",
+          height: "100%",
+          transform: "rotateY(180deg)",
+          transition: "transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          transformStyle: "preserve-3d",
+        }}
+      >
+        <HolographicCard
+          text={card.text}
+          label={card.label}
+          descTop={card.descTop}
+          descBottom={card.descBottom}
+          autoRotate={false}
+          externalRotationY={0}
+          color0={[180, 200, 210]}
+          color1={[220, 240, 255]}
+        />
+      </div>
+    </div>
+  );
 }
 
 const defaultCards: CardData[] = [
@@ -58,6 +153,22 @@ export function CardStack({
 }: CardStackProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [cardDims, setCardDims] = useState({ width: 320, height: 480, gap: 24 });
+  const [mobile, setMobile] = useState(false); // Default false for SSR
+
+  // Initialize and update dimensions on client
+  useEffect(() => {
+    // Set initial values on client
+    setCardDims(getCardDimensions());
+    setMobile(isMobile());
+
+    const handleResize = () => {
+      setCardDims(getCardDimensions());
+      setMobile(isMobile());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Current and target values for smooth animation
   const scrollProgressRef = useRef(0);
@@ -76,8 +187,8 @@ export function CardStack({
   const updateCardTransforms = useCallback(
     (progress: number) => {
       const totalCards = cards.length;
-      const cardWidth = 320;
-      const gap = 24;
+      const cardWidth = cardDims.width;
+      const gap = cardDims.gap;
 
       // Phase 1: 0 to 0.25 - spread out to row
       // Phase 2: 0.25 to 0.75 - flip cards with delay (bounce effect) - 50% of scroll
@@ -153,7 +264,7 @@ export function CardStack({
         cardEl.style.zIndex = `${totalCards - index}`;
       });
     },
-    [cards.length]
+    [cards.length, cardDims.width, cardDims.gap]
   );
 
   // Animation loop with smooth lerp
@@ -214,6 +325,28 @@ export function CardStack({
     };
   }, [animate]);
 
+  // Mobile: vertical scroll layout with individual card flip on scroll
+  if (mobile) {
+    return (
+      <div
+        ref={containerRef}
+        className={`relative ${className} z-10 bg-black`}
+      >
+        <div className="flex flex-col items-center gap-8 py-16 px-4">
+          {cards.map((card, index) => (
+            <MobileCard
+              key={index}
+              card={card}
+              cardDims={cardDims}
+              index={index}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: horizontal spread with scroll animation
   return (
     <div
       ref={containerRef}
@@ -233,8 +366,10 @@ export function CardStack({
               ref={(el) => {
                 cardRefs.current[index] = el;
               }}
-              className="absolute w-[320px] h-[480px]"
+              className="absolute"
               style={{
+                width: `${cardDims.width}px`,
+                height: `${cardDims.height}px`,
                 transformStyle: "preserve-3d",
                 willChange: "transform, opacity",
               }}

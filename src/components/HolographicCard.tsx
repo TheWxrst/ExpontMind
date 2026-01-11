@@ -25,6 +25,15 @@ const helvetikerFontRegular =
 const voronoi =
   "https://raw.githubusercontent.com/pizza3/asset/master/rgbnoise2.png";
 
+// Scale factor for responsive card sizing
+const getScaleFactor = (width: number) => {
+  if (width < 220) return 0.55;
+  if (width < 260) return 0.65;
+  if (width < 300) return 0.75;
+  if (width < 340) return 0.85;
+  return 1;
+};
+
 // Shaders
 const vert = `
   varying vec2 vUv;
@@ -371,6 +380,7 @@ export default function HolographicCard({
     const s = stateRef.current;
     const width = container.clientWidth;
     const height = container.clientHeight;
+    const scale = getScaleFactor(width);
 
     // Setup scenes
     s.scene = new THREE.Scene();
@@ -425,8 +435,8 @@ export default function HolographicCard({
     // Texture loader
     const loader = new THREE.TextureLoader();
 
-    // Front card
-    const frontGeometry = new THREE.PlaneGeometry(28, 42);
+    // Front card (scaled for responsive)
+    const frontGeometry = new THREE.PlaneGeometry(28 * scale, 42 * scale);
     s.frontmaterial = new THREE.ShaderMaterial({
       uniforms: {
         cardtemplate: { value: loader.load(cardtemplateback) },
@@ -446,8 +456,8 @@ export default function HolographicCard({
     s.frontcard = new THREE.Mesh(frontGeometry, s.frontmaterial);
     s.scene.add(s.frontcard);
 
-    // Back card
-    const backGeometry = new THREE.PlaneGeometry(28, 42);
+    // Back card (scaled for responsive)
+    const backGeometry = new THREE.PlaneGeometry(28 * scale, 42 * scale);
     s.backmaterial = new THREE.ShaderMaterial({
       uniforms: {
         cardtemplate: { value: loader.load(cardtemplateback) },
@@ -468,14 +478,14 @@ export default function HolographicCard({
     s.backcard.rotation.set(0, Math.PI, 0);
     s.scene.add(s.backcard);
 
-    // Add label text
+    // Add label text (scaled for responsive)
     const fontLoader2 = new FontLoader();
     fontLoader2.load(helvetikerFontRegular, (font) => {
       // Top text
       const topTextGeometry = new TextGeometry(label, {
         font: font,
-        size: 1.6,
-        depth: 0.1,
+        size: 1.6 * scale,
+        depth: 0.1 * scale,
         curveSegments: 12,
         bevelEnabled: false,
       });
@@ -486,15 +496,15 @@ export default function HolographicCard({
         opacity: 1,
       });
       const topTextMesh = new THREE.Mesh(topTextGeometry, textMaterial);
-      topTextMesh.position.set(-11, 16, 0.1);
+      topTextMesh.position.set(-11 * scale, 16 * scale, 0.1);
       s.scene!.add(topTextMesh);
       s.labelMeshes.push(topTextMesh);
 
       // Bottom text (flipped)
       const bottomTextGeometry = new TextGeometry(label, {
         font: font,
-        size: 1.6,
-        depth: 0.1,
+        size: 1.6 * scale,
+        depth: 0.1 * scale,
         curveSegments: 12,
         bevelEnabled: false,
       });
@@ -502,7 +512,7 @@ export default function HolographicCard({
         bottomTextGeometry,
         textMaterial.clone()
       );
-      bottomTextMesh.position.set(11, -16, 0.1);
+      bottomTextMesh.position.set(11 * scale, -16 * scale, 0.1);
       bottomTextMesh.rotation.set(0, 0, Math.PI);
       s.scene!.add(bottomTextMesh);
       s.labelMeshes.push(bottomTextMesh);
@@ -546,25 +556,25 @@ export default function HolographicCard({
           }
         }
 
-        // First line
+        // First line (scaled)
         const descTopGeometry1 = new TextGeometry(topLine1, {
           font: font,
-          size: 1.1,
-          depth: 0.05,
+          size: 1.1 * scale,
+          depth: 0.05 * scale,
           curveSegments: 8,
           bevelEnabled: false,
         });
         const descTopMesh1 = new THREE.Mesh(descTopGeometry1, descMaterial);
-        descTopMesh1.position.set(-11, topLine2 ? 13 : 12.5, 0.1);
+        descTopMesh1.position.set(-11 * scale, (topLine2 ? 13 : 12.5) * scale, 0.1);
         s.scene!.add(descTopMesh1);
         s.labelMeshes.push(descTopMesh1);
 
-        // Second line if exists
+        // Second line if exists (scaled)
         if (topLine2) {
           const descTopGeometry2 = new TextGeometry(topLine2, {
             font: font,
-            size: 1.1,
-            depth: 0.05,
+            size: 1.1 * scale,
+            depth: 0.05 * scale,
             curveSegments: 8,
             bevelEnabled: false,
           });
@@ -572,7 +582,7 @@ export default function HolographicCard({
             descTopGeometry2,
             descMaterial.clone()
           );
-          descTopMesh2.position.set(-11, 11, 0.1);
+          descTopMesh2.position.set(-11 * scale, 11 * scale, 0.1);
           s.scene!.add(descTopMesh2);
           s.labelMeshes.push(descTopMesh2);
         }
@@ -593,11 +603,11 @@ export default function HolographicCard({
           line1 = descBottom;
         }
 
-        // First line (shorter, on top) - right aligned
+        // First line (shorter, on top) - right aligned (scaled)
         const descBottomGeometry1 = new TextGeometry(line1, {
           font: font,
-          size: 1.1,
-          depth: 0.05,
+          size: 1.1 * scale,
+          depth: 0.05 * scale,
           curveSegments: 8,
           bevelEnabled: false,
         });
@@ -609,16 +619,16 @@ export default function HolographicCard({
           descBottomGeometry1,
           descMaterial.clone()
         );
-        descBottomMesh1.position.set(11 - textWidth1, line2 ? -12 : -13.5, 0.1);
+        descBottomMesh1.position.set(11 * scale - textWidth1, (line2 ? -12 : -13.5) * scale, 0.1);
         s.scene!.add(descBottomMesh1);
         s.labelMeshes.push(descBottomMesh1);
 
-        // Second line (longer, on bottom) - right aligned
+        // Second line (longer, on bottom) - right aligned (scaled)
         if (line2) {
           const descBottomGeometry2 = new TextGeometry(line2, {
             font: font,
-            size: 1.1,
-            depth: 0.05,
+            size: 1.1 * scale,
+            depth: 0.05 * scale,
             curveSegments: 8,
             bevelEnabled: false,
           });
@@ -630,7 +640,7 @@ export default function HolographicCard({
             descBottomGeometry2,
             descMaterial.clone()
           );
-          descBottomMesh2.position.set(11 - textWidth2, -14, 0.1);
+          descBottomMesh2.position.set(11 * scale - textWidth2, -14 * scale, 0.1);
           s.scene!.add(descBottomMesh2);
           s.labelMeshes.push(descBottomMesh2);
         }
@@ -651,17 +661,17 @@ export default function HolographicCard({
 
     s.modelgroup = new THREE.Group();
 
-    // Load 3D Text
+    // Load 3D Text (scaled for responsive)
     const fontLoader = new FontLoader();
     fontLoader.load(helvetikerFont, (font) => {
       const textGeometry = new TextGeometry(text, {
         font: font,
-        size: 4,
-        depth: 1.5,
+        size: 4 * scale,
+        depth: 1.5 * scale,
         curveSegments: 12,
         bevelEnabled: true,
-        bevelThickness: 0.3,
-        bevelSize: 0.2,
+        bevelThickness: 0.3 * scale,
+        bevelSize: 0.2 * scale,
         bevelOffset: 0,
         bevelSegments: 5,
       });

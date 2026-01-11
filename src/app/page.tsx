@@ -19,7 +19,6 @@ import { useTextVisibility } from "@/hooks/useTextVisibility";
 import { useTrainSceneScroll } from "@/hooks/useTrainSceneScroll";
 import { useDisableScrollOnLoading } from "@/hooks/useDisableScrollOnLoading";
 import { useGsapScrollAnimations } from "@/hooks/useGsapScrollAnimations";
-import { TextHoverEffect } from "@/components/ui/text-hover-effect";
 import CardStack from "@/components/CardStack";
 
 export default function Home() {
@@ -52,18 +51,16 @@ export default function Home() {
         <div className="fixed inset-0 w-full h-full flex justify-between items-end pointer-events-none z-0">
           <div className="relative flex-1 flex flex-col px-[5vw] py-[1vh]">
             <div className="relative w-full text-center">
-              {/* Spacer for layout dimensions */}
               <div className="opacity-0 text-[13.4vw] leading-[0.7] font-medium uppercase text-center select-none pointer-events-none">
                 Expont Mind
               </div>
 
-              {/* Actual Component Overlay - Absolute to match spacer position */}
               <div className="absolute inset-0 top-0 left-0 w-full h-full flex items-center justify-center">
                 <ScrollTrailText />
               </div>
             </div>
 
-            <p className="text-white uppercase font-normal text-[2vw] text-end mt-4">
+            <p className="text-white uppercase font-normal text-[14px] sm:text-[1.5vw] md:text-[2vw] text-end mt-4">
               Solutions
             </p>
           </div>
@@ -83,7 +80,7 @@ export default function Home() {
               className="w-full h-full"
               camera={{ position: [0, 0, 5], fov: 45 }}
             >
-              <ambientLight intensity={0.5} />
+              <ambientLight intensity={0.8} />
               <spotLight
                 position={[10, 10, 10]}
                 angle={0.15}
@@ -141,12 +138,14 @@ export default function Home() {
       <CardStack />
 
       <div
+        id="projects"
         ref={containerRef}
         className="relative w-full h-[400vh] z-10 bg-black"
       >
-        <div className="h-[32vh] flex items-center justify-center">
-          <TextHoverEffect text="PROJECTS" />
-        </div>
+        <p className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase leading-tight text-center">
+          Projects
+        </p>
+
         <TrainScene usePageScroll getScrollProgress={getScrollProgress} />
       </div>
 
@@ -156,7 +155,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
+      <Footer id="contact" />
     </div>
   );
 }

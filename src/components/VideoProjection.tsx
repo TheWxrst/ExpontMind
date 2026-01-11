@@ -4,6 +4,17 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+// Get responsive values based on screen size
+const getResponsiveConfig = () => {
+  if (typeof window === "undefined")
+    return { scale: 0.15, gridSize: 36, cameraZ: 6 };
+  const w = window.innerWidth;
+  if (w < 480) return { scale: 0.11, gridSize: 28, cameraZ: 5 };
+  if (w < 640) return { scale: 0.12, gridSize: 30, cameraZ: 5.5 };
+  if (w < 768) return { scale: 0.13, gridSize: 32, cameraZ: 5.5 };
+  return { scale: 0.15, gridSize: 36, cameraZ: 6 };
+};
+
 class VideoProjectionApp {
   canvas: HTMLCanvasElement;
   renderer: THREE.WebGLRenderer;
@@ -12,7 +23,7 @@ class VideoProjectionApp {
   controls: OrbitControls;
   group: THREE.Group;
   grids: THREE.Group[] = [];
-  gridSize = 36;
+  gridSize: number;
   spacing = 0.56;
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
@@ -25,9 +36,14 @@ class VideoProjectionApp {
   videoElement: HTMLVideoElement | null = null;
   videoTexture: THREE.VideoTexture | null = null;
   cachedMousePos = new THREE.Vector3();
+  responsiveConfig: { scale: number; gridSize: number; cameraZ: number };
 
   constructor(canvasElement: HTMLCanvasElement) {
     this.canvas = canvasElement;
+
+    // Get responsive config
+    this.responsiveConfig = getResponsiveConfig();
+    this.gridSize = this.responsiveConfig.gridSize;
 
     // Renderer
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -38,7 +54,9 @@ class VideoProjectionApp {
     });
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
+    this.renderer.setPixelRatio(
+      isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5)
+    );
 
     // Scene & Camera
     this.scene = new THREE.Scene();
@@ -48,7 +66,7 @@ class VideoProjectionApp {
       0.1,
       100
     );
-    this.camera.position.z = 6;
+    this.camera.position.z = this.responsiveConfig.cameraZ;
 
     // Controls - only Z rotation, no zoom
     this.controls = new OrbitControls(this.camera, this.canvas);
@@ -79,7 +97,7 @@ class VideoProjectionApp {
     // Group
     this.group = new THREE.Group();
     this.scene.add(this.group);
-    this.group.scale.setScalar(0.15);
+    this.group.scale.setScalar(this.responsiveConfig.scale);
 
     // Create video texture for cubes
     this.createVideoTexture();
@@ -91,10 +109,14 @@ class VideoProjectionApp {
     window.addEventListener("resize", this.onResize.bind(this));
 
     // Mouse move for hover effect
-    window.addEventListener("mousemove", this.onMouseMove.bind(this), { passive: true });
+    window.addEventListener("mousemove", this.onMouseMove.bind(this), {
+      passive: true,
+    });
 
     // Scroll for rotation
-    window.addEventListener("scroll", this.onScroll.bind(this), { passive: true });
+    window.addEventListener("scroll", this.onScroll.bind(this), {
+      passive: true,
+    });
 
     // Animate
     this.animate();
@@ -239,7 +261,9 @@ class VideoProjectionApp {
       mouseWorld.unproject(this.camera);
       const dir = mouseWorld.sub(this.camera.position).normalize();
       const distance = -this.camera.position.z / dir.z;
-      this.cachedMousePos.copy(this.camera.position).add(dir.multiplyScalar(distance));
+      this.cachedMousePos
+        .copy(this.camera.position)
+        .add(dir.multiplyScalar(distance));
     }
 
     // Update mesh positions based on hover - only every 2nd frame

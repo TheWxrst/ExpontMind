@@ -892,14 +892,14 @@ export function Ascii({ className = "" }: FooterProps) {
           />
 
           {/* Centered Text */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-[200px] text-white font-pixel text-center leading-none tracking-tight uppercase">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-4">
+            <p className="text-[48px] sm:text-[80px] md:text-[120px] lg:text-[160px] xl:text-[200px] text-white font-pixel text-center leading-none tracking-tight uppercase">
               Let's talk
             </p>
           </div>
 
           {/* Contact button centered in fluid */}
-          <button className="absolute bottom-10 left-1/2 -translate-x-1/2 -translate-y-1/2 px-8 py-4 rounded-full border bg-white text-black font-normal text-base tracking-wide transition-all duration-300 uppercase flex items-center gap-4 overflow-hidden">
+          <button className="absolute bottom-10 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-full border bg-white text-black font-normal text-sm sm:text-base tracking-wide transition-all duration-300 uppercase flex items-center gap-2 sm:gap-4 overflow-hidden">
             <span className="inline-flex h-5 overflow-hidden">
               <div className="flex flex-col animate-arrow-scroll">
                 <ArrowDown className="w-5 h-5 shrink-0" strokeWidth={1.5} />
