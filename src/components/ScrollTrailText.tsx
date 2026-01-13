@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 // Responsive font size
 const getResponsiveFontSize = () => {
-  if (typeof window === "undefined") return "13.4vw";
-  return window.innerWidth < 640 ? "11vw" : "13.4vw";
+  if (typeof window === "undefined") return "13vw";
+  return window.innerWidth < 640 ? "11vw" : "13vw";
 };
 
 export default function ScrollTrailText() {
@@ -14,7 +14,7 @@ export default function ScrollTrailText() {
   const rafId = useRef<number | null>(null);
   const lastScrollY = useRef(0);
   // Use consistent initial value to avoid hydration mismatch
-  const [fontSize, setFontSize] = useState("13.4vw");
+  const [fontSize, setFontSize] = useState("13vw");
 
   // Handle resize for responsive font size - also set initial value on mount
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function ScrollTrailText() {
           ref={(el) => {
             textRefs.current[i] = el;
           }}
-          className="absolute text-center uppercase font-medium leading-[0.8]"
+          className="absolute text-center uppercase font-medium leading-[0.8] font-pixel"
           style={{
             zIndex: i,
             color: i === 4 ? "#fff" : "transparent",

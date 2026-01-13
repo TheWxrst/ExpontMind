@@ -58,30 +58,7 @@ const TextLogo = ({ name, index }: { name: string; index: number }) => (
   </motion.div>
 );
 
-// Grid of partners for mobile
-const PartnersGrid = () => {
-  const partnerNames = [
-    "PORSCHE",
-    "WALLPAPER*",
-    "COCA-COLA",
-    "APPLE",
-    "WEBBY",
-    "ELEMENT",
-    "HYUNDAI",
-    "COCA-COLA",
-    "AWWWARDS",
-  ];
-
-  return (
-    <div className="grid grid-cols-3 gap-y-12 sm:gap-y-16 w-full max-w-md sm:max-w-2xl md:max-w-4xl mx-auto px-4">
-      {partnerNames.map((name, index) => (
-        <TextLogo key={`${name}-${index}`} name={name} index={index} />
-      ))}
-    </div>
-  );
-};
-
-// Marquee row for desktop
+// Marquee row for all screen sizes
 const MarqueeRow = ({
   items,
   direction = "left",
@@ -94,7 +71,7 @@ const MarqueeRow = ({
   const duplicatedItems = [...items, ...items, ...items, ...items];
 
   return (
-    <div className="hidden md:flex overflow-hidden">
+    <div className="flex overflow-hidden">
       <motion.div
         className="flex"
         animate={{
@@ -112,9 +89,9 @@ const MarqueeRow = ({
         {duplicatedItems.map((item, index) => (
           <div
             key={`${item}-${index}`}
-            className="flex items-center justify-center px-8 md:px-12 py-4"
+            className="flex items-center justify-center px-4 sm:px-6 md:px-12 py-4"
           >
-            <span className="text-white/70 hover:text-white text-lg md:text-xl lg:text-2xl font-light tracking-[0.2em] uppercase whitespace-nowrap transition-colors duration-300">
+            <span className="text-white text-lg md:text-xl lg:text-4xl font-light tracking-widest sm:tracking-[0.2em] uppercase whitespace-nowrap transition-colors duration-300">
               {item}
             </span>
           </div>
@@ -149,37 +126,29 @@ export const Partners = () => {
       >
         <motion.div
           style={{ opacity, y }}
-          className="flex flex-col items-center gap-16 sm:gap-20 md:gap-24"
+          className="flex flex-col items-center gap-16 sm:gap-24 md:gap-32"
         >
           {/* Header - Mobile: Centered, Desktop: Split */}
-          <div className="w-full flex flex-col items-center text-center md:items-start md:text-left md:flex-row md:justify-between px-6 sm:px-12 md:px-24 gap-6 md:gap-0">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase leading-tight">
-              CLIENTS WE
-              <br />
-              WORK WITH
-            </h2>
-            <p className="text-white/60 text-xs sm:text-sm font-light uppercase tracking-wider max-w-xs md:text-right leading-relaxed">
-              WE CAN&apos;T WAIT TO SHOW YOU WHAT WE
-              <br className="hidden sm:block" />
-              CAN DO FOR YOU AND YOUR BRAND.
+          <div className="w-full flex flex-col items-center text-center md:items-start md:text-left md:flex-row md:justify-between px-[6vw] gap-12 md:gap-0">
+            <p className="text-[44px] md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase">
+              Partners that trust us
+            </p>
+            <p className="text-white text-sm font-light uppercase text-center md:text-end ">
+              We collaborate with <br /> visionary brands to create <br />
+              extraordinary digital experiences.
             </p>
           </div>
 
-          {/* Mobile: Grid layout */}
-          <div className="md:hidden w-full">
-            <PartnersGrid />
-          </div>
-
-          {/* Desktop: Marquee rows */}
-          <div className="hidden md:flex flex-col gap-16 w-full">
+          {/* Marquee rows for all screen sizes */}
+          <div className="flex flex-col gap-20 md:gap-32 w-full">
             <MarqueeRow items={row1} direction="left" speed={25} />
             <MarqueeRow items={row2} direction="right" speed={30} />
             <MarqueeRow items={row3} direction="left" speed={22} />
           </div>
 
-          {/* Gradient overlays for fade effect - Desktop only */}
-          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-24 md:w-32 bg-linear-to-r from-black to-transparent hidden md:block" />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-24 md:w-32 bg-linear-to-l from-black to-transparent hidden md:block" />
+          {/* Gradient overlays for fade effect */}
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-24 md:w-32 bg-linear-to-r from-black to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-24 md:w-32 bg-linear-to-l from-black to-transparent" />
         </motion.div>
       </div>
     </div>

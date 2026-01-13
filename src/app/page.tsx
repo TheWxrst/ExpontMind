@@ -19,7 +19,6 @@ import { useTextVisibility } from "@/hooks/useTextVisibility";
 import { useTrainSceneScroll } from "@/hooks/useTrainSceneScroll";
 import { useDisableScrollOnLoading } from "@/hooks/useDisableScrollOnLoading";
 import { useGsapScrollAnimations } from "@/hooks/useGsapScrollAnimations";
-import CardStack from "@/components/CardStack";
 
 export default function Home() {
   const textItemRef = useRef<HTMLDivElement>(null);
@@ -50,10 +49,15 @@ export default function Home() {
         <div className="ghost_hero-item h-[320vh]" />
         <div className="fixed inset-0 w-full h-full flex justify-between items-end pointer-events-none z-0">
           <div className="relative flex-1 flex flex-col px-[5vw] py-[1vh]">
+            {/* Hidden H1 for SEO */}
+            <h1 className="sr-only">
+              AI Solutions, Mobile Apps & Custom Software Development - ExpontMind
+            </h1>
+
             <div className="relative w-full text-center">
-              <div className="opacity-0 text-[13.4vw] leading-[0.7] font-medium uppercase text-center select-none pointer-events-none">
+              <p className="font-pixel opacity-0 text-[13vw] leading-[0.7] font-medium uppercase text-center select-none pointer-events-none">
                 Expont Mind
-              </div>
+              </p>
 
               <div className="absolute inset-0 top-0 left-0 w-full h-full flex items-center justify-center">
                 <ScrollTrailText />
@@ -111,17 +115,6 @@ export default function Home() {
 
             <div className="relative w-full flex flex-col justify-around items-stretch p-[2vw_4vw]">
               <div className="relative w-full flex justify-between items-end pt-[4vw]">
-                {/* <div className="flex flex-col uppercase text-[8vw] font-medium leading-none">
-                  <div className="overflow-hidden">
-                    <div className="line">NATURE</div>
-                  </div>
-                  <div className="overflow-hidden">
-                    <div className="line">
-                      <span className="text-[#ffd9b3]">SAVED </span>
-                      YOU
-                    </div>
-                  </div>
-                </div> */}
               </div>
             </div>
           </div>
@@ -135,14 +128,12 @@ export default function Home() {
 
       <Partners />
 
-      <CardStack />
-
       <div
         id="projects"
         ref={containerRef}
         className="relative w-full h-[400vh] z-10 bg-black"
       >
-        <p className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase leading-tight text-center">
+        <p className="text-[44px] md:text-6xl lg:text-7xl font-normal text-white tracking-wide uppercase text-center md:text-start px-[6vw]">
           Projects
         </p>
 

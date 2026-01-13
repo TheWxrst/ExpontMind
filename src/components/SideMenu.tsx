@@ -1,13 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { gsap } from "@/lib/gsap";
+import { ChevronRight } from "lucide-react";
+import { SERVICES, INDUSTRIES } from "@/lib/seo/constants";
+
+// Default dimensions (used for SSR and initial state)
+const defaultMenuDims = {
+  width: "480px",
+  height: "auto",
+  top: "-25px",
+  right: "-25px",
+};
 
 // Responsive menu dimensions based on screen size
 const getMenuDimensions = () => {
-  if (typeof window === "undefined")
-    return { width: "480px", height: "500px", top: "-25px", right: "-25px" };
+  if (typeof window === "undefined") return defaultMenuDims;
   const w = window.innerWidth;
   if (w < 640)
     return {
@@ -17,26 +27,36 @@ const getMenuDimensions = () => {
       right: "-10px",
     };
   if (w < 768)
-    return { width: "320px", height: "auto", top: "-15px", right: "-15px" };
-  return { width: "480px", height: "auto", top: "-25px", right: "-25px" };
+    return { width: "360px", height: "auto", top: "-15px", right: "-15px" };
+  return { width: "520px", height: "auto", top: "-25px", right: "-25px" };
 };
 
-const links = [
-  { title: "Home", href: "#", action: "scroll-top" },
-  { title: "Projects", href: "#projects", action: "scroll" },
-  { title: "Contact", href: "#contact", action: "scroll" },
-  {
-    title: "Let's Talk",
-    href: "mailto:expontmindsolutions@gmail.com",
-    action: "email",
-  },
+type MenuView = "main" | "services" | "industries";
+
+const mainLinks = [
+  { title: "HOME", href: "/", action: "navigate" },
+  { title: "SERVICES", href: "/services", action: "submenu", submenu: "services" as const },
+  { title: "INDUSTRIES", href: "/industries", action: "submenu", submenu: "industries" as const },
+  { title: "WORK", href: "/work", action: "navigate" },
+  { title: "BLOG", href: "/blog", action: "navigate" },
+  { title: "CONTACT", href: "/contact", action: "navigate" },
 ];
 
+const serviceLinks = Object.values(SERVICES).map((service) => ({
+  title: service.name.toUpperCase(),
+  href: `/services/${service.slug}`,
+}));
+
+const industryLinks = Object.values(INDUSTRIES).map((industry) => ({
+  title: industry.name.toUpperCase(),
+  href: `/industries/${industry.slug}`,
+}));
+
 const footerLinks = [
-  { title: "Facebook", href: "/" },
-  { title: "LinkedIn", href: "/" },
-  { title: "Instagram", href: "/" },
-  { title: "Twitter", href: "/" },
+  { title: "Twitter", href: "https://twitter.com/expontmind" },
+  { title: "LinkedIn", href: "https://linkedin.com/company/expontmind" },
+  { title: "Instagram", href: "https://instagram.com/expontmind" },
+  { title: "GitHub", href: "https://github.com/expontmind" },
 ];
 
 const getMenuVariants = (dims: ReturnType<typeof getMenuDimensions>) => ({
@@ -64,35 +84,6 @@ const getMenuVariants = (dims: ReturnType<typeof getMenuDimensions>) => ({
     },
   },
 });
-
-const perspective = {
-  initial: {
-    opacity: 0,
-    rotateX: 90,
-    translateY: 80,
-    translateX: -20,
-  },
-  enter: (i: number) => ({
-    opacity: 1,
-    rotateX: 0,
-    translateY: 0,
-    translateX: 0,
-    transition: {
-      duration: 0.65,
-      delay: 0.5 + i * 0.1,
-      ease: [0.215, 0.61, 0.355, 1] as [number, number, number, number],
-      opacity: { duration: 0.35 },
-    },
-  }),
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.75,
-      type: "tween" as const,
-      ease: [0.76, 0, 0.24, 1] as [number, number, number, number],
-    },
-  },
-};
 
 const slideIn = {
   initial: {
@@ -169,62 +160,101 @@ function MenuButton({
   );
 }
 
+// Text reveal animation variants for each character
+const charReveal = {
+  initial: {
+    y: "100%",
+    opacity: 0,
+  },
+  enter: (i: number) => ({
+    y: "0%",
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      delay: i * 0.03,
+      ease: [0.215, 0.61, 0.355, 1] as [number, number, number, number],
+    },
+  }),
+  exit: {
+    y: "-100%",
+    opacity: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.76, 0, 0.24, 1] as [number, number, number, number],
+    },
+  },
+};
+
+// Animated link text component with character reveal
+function AnimatedLinkText({
+  text,
+  linkIndex,
+}: {
+  text: string;
+  linkIndex: number;
+}) {
+  return (
+    <span className="flex overflow-hidden">
+      {text.split("").map((char, charIndex) => (
+        <motion.span
+          key={charIndex}
+          custom={linkIndex * 5 + charIndex}
+          variants={charReveal}
+          initial="initial"
+          animate="enter"
+          exit="exit"
+          className="inline-block"
+          style={{ whiteSpace: char === " " ? "pre" : "normal" }}
+        >
+          {char}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 function Nav({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const [currentView, setCurrentView] = useState<MenuView>("main");
+
   const handleLinkClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
-    link: (typeof links)[0]
+    link: (typeof mainLinks)[0]
   ) => {
-    if (link.action === "scroll-top") {
+    if (link.action === "submenu" && link.submenu) {
+      e.preventDefault();
+      setCurrentView(link.submenu);
+    } else if (link.action === "navigate") {
       e.preventDefault();
       onClose();
       setTimeout(() => {
-        gsap.to(window, {
-          duration: 1.2,
-          scrollTo: { y: 0 },
-          ease: "power3.inOut",
-        });
+        router.push(link.href);
       }, 300);
-    } else if (link.action === "scroll") {
-      e.preventDefault();
-      onClose();
-      setTimeout(() => {
-        const element = document.querySelector(link.href);
-        if (element) {
-          gsap.to(window, {
-            duration: 1.2,
-            scrollTo: { y: element, offsetY: 0 },
-            ease: "power3.inOut",
-          });
-        }
-      }, 300);
-    } else if (link.action === "email") {
-      onClose();
     }
   };
 
-  return (
-    <div className="flex flex-col gap-10 justify-between px-6 sm:px-8 md:px-10 pt-[60px] sm:pt-[80px] md:pt-[100px] pb-[30px] sm:pb-[40px] md:pb-[50px] h-full box-border">
-      <div className="flex flex-col gap-[8px] sm:gap-[10px]">
-        {links.map((link, i) => (
-          <div
-            key={`b_${i}`}
-            className="perspective-[120px] perspective-origin-bottom"
-          >
-            <motion.div
-              custom={i}
-              variants={perspective}
-              initial="initial"
-              animate="enter"
-              exit="exit"
+  const handleSubLinkClick = (href: string) => {
+    onClose();
+    setTimeout(() => {
+      router.push(href);
+    }, 300);
+  };
+
+  const renderMainNav = () => (
+    <>
+      <div className="flex flex-col gap-[6px] sm:gap-[8px]">
+        {mainLinks.map((link, i) => (
+          <div key={`b_${i}`} className="overflow-hidden">
+            <a
+              href={link.href}
+              onClick={(e) => handleLinkClick(e, link)}
+              className="text-black no-underline text-[24px] sm:text-[32px] md:text-[40px] block flex items-center justify-between group"
             >
-              <a
-                href={link.href}
-                onClick={(e) => handleLinkClick(e, link)}
-                className="text-black no-underline text-[28px] sm:text-[36px] md:text-[46px]"
-              >
-                {link.title}
-              </a>
-            </motion.div>
+              <AnimatedLinkText text={link.title} linkIndex={i} />
+              {link.action === "submenu" && (
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              )}
+            </a>
           </div>
         ))}
       </div>
@@ -232,27 +262,132 @@ function Nav({ onClose }: { onClose: () => void }) {
         {footerLinks.map((link, i) => (
           <motion.a
             href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
             variants={slideIn}
             custom={i}
             initial="initial"
             animate="enter"
             exit="exit"
             key={`f_${i}`}
-            className="w-1/2 mt-[5px] no-underline text-black text-sm sm:text-base"
+            className="w-1/2 mt-[5px] no-underline text-black text-sm sm:text-base hover:underline"
           >
             {link.title}
           </motion.a>
         ))}
       </motion.div>
+    </>
+  );
+
+  const renderSubNav = (
+    title: string,
+    links: { title: string; href: string }[],
+    parentHref: string
+  ) => (
+    <>
+      <div className="flex flex-col gap-[6px] sm:gap-[8px]">
+        <button
+          onClick={() => setCurrentView("main")}
+          className="text-stone-500 text-sm uppercase flex items-center gap-2 mb-4 hover:text-black transition-colors"
+        >
+          <ChevronRight className="w-4 h-4 rotate-180" />
+          Back
+        </button>
+
+        <div className="overflow-hidden mb-4">
+          <Link
+            href={parentHref}
+            onClick={() => handleSubLinkClick(parentHref)}
+            className="text-black no-underline text-[20px] sm:text-[26px] md:text-[32px] block font-medium"
+          >
+            ALL {title}
+          </Link>
+        </div>
+
+        {links.map((link, i) => (
+          <div key={`s_${i}`} className="overflow-hidden">
+            <Link
+              href={link.href}
+              onClick={() => handleSubLinkClick(link.href)}
+              className="text-stone-700 hover:text-black no-underline text-[18px] sm:text-[22px] md:text-[26px] block transition-colors"
+            >
+              <AnimatedLinkText text={link.title} linkIndex={i} />
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <motion.div
+        className="mt-auto pt-6 border-t border-stone-200"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Link
+          href="/contact"
+          onClick={() => handleSubLinkClick("/contact")}
+          className="text-black font-medium hover:underline"
+        >
+          Get a Quote
+        </Link>
+      </motion.div>
+    </>
+  );
+
+  return (
+    <div className="flex flex-col gap-8 justify-between px-6 sm:px-8 md:px-10 pt-[60px] sm:pt-[80px] md:pt-[100px] pb-[30px] sm:pb-[40px] md:pb-[50px] h-full box-border min-h-[400px]">
+      <AnimatePresence mode="wait">
+        {currentView === "main" && (
+          <motion.div
+            key="main"
+            className="flex flex-col gap-10 justify-between flex-1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderMainNav()}
+          </motion.div>
+        )}
+
+        {currentView === "services" && (
+          <motion.div
+            key="services"
+            className="flex flex-col gap-6 justify-between flex-1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderSubNav("SERVICES", serviceLinks, "/services")}
+          </motion.div>
+        )}
+
+        {currentView === "industries" && (
+          <motion.div
+            key="industries"
+            className="flex flex-col gap-6 justify-between flex-1"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderSubNav("INDUSTRIES", industryLinks, "/industries")}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 export default function SideMenu() {
   const [isActive, setIsActive] = useState(false);
-  const [menuDims, setMenuDims] = useState(getMenuDimensions());
+  // Use default dimensions initially to avoid hydration mismatch
+  const [menuDims, setMenuDims] = useState(defaultMenuDims);
 
   useEffect(() => {
+    // Set correct dimensions on mount
+    setMenuDims(getMenuDimensions());
     const handleResize = () => setMenuDims(getMenuDimensions());
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);

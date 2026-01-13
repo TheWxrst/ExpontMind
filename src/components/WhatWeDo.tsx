@@ -40,7 +40,7 @@ function ServiceCard({ service, alignRight = false }: ServiceCardProps) {
       >
         <div className="flex gap-4 sm:gap-8 ">
           <div
-            className={`border-2 rotate-45 group-hover:rotate-225 w-[40px] h-[40px] sm:w-[56px] sm:h-[56px] flex items-center justify-center transition-all duration-500 border-blue-400 flex-shrink-0`}
+            className={`border-2 rotate-45 group-hover:rotate-225 w-[40px] h-[40px] sm:w-[56px] sm:h-[56px] flex items-center justify-center transition-all duration-500 border-blue-400 shrink-0`}
           >
             <p className="text-sm sm:text-lg font-light group-hover:-rotate-225 text-white -rotate-45 transition-all duration-500">
               {service.number}
